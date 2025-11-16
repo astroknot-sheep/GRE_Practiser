@@ -1,0 +1,43 @@
+# Byte-compiled / cache files
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+myenv/
+
+# Test output/log files
+*.log
+
+# Local test scripts
+pytest.py
+test_no_repeat.py
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# VSCode settings
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Ignore compiled extensions
+*.so
+
+# Ignore environment variables/config
+.env
+*.env
+
+# Ignore backup files
+*~
+*.bak
+
+# Ignore coverage reports
+.coverage
+htmlcov/
+
+# Ignore dist/build
+build/
+dist/
+*.egg-info/

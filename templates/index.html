@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}GRE Quantitative Practice{% endblock %}
+
+{% block extra_styles %}
+<style>
+    html, body, * {
+        font-family: 'League Spartan', Arial, sans-serif !important;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
+    }
+    
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%) !important;
+    }
+    
+    .home-hero {
+        background: linear-gradient(135deg, #f8f9fb 0%, #e8ecf1 100%);
+        color: #2d3748;
+        border-radius: 20px;
+        padding: 50px 32px 40px 32px;
+        text-align: center;
+        margin-bottom: 48px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.06);
+        border: 1px solid #d4dce6;
+    }
+    
+    .home-hero h1 {
+        font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
+        font-size: 3em;
+        font-weight: 700;
+        margin-bottom: 14px;
+        letter-spacing: -0.5px;
+        color: #667292;
+    }
+    
+    .home-hero p {
+        font-family: 'League Spartan', Arial, sans-serif !important;
+        font-size: 1.25em;
+        margin-bottom: 0;
+        color: #4a5568;
+        font-weight: 400;
+        line-height: 1.6;
+    }
+    
+    .test-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 32px;
+        justify-content: center;
+        margin-top: 36px;
+    }
+    
+    .test-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        padding: 36px 30px 30px 30px;
+        min-width: 260px;
+        max-width: 340px;
+        flex: 1 1 260px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: all 0.3s ease;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .test-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(102, 114, 146, 0.15);
+        border-color: #8b95ab;
+    }
+    
+    .test-card h2 {
+        font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
+        font-size: 1.5em;
+        font-weight: 700;
+        color: #667292;
+        margin-bottom: 12px;
+        letter-spacing: -0.3px;
+    }
+    
+    .test-card p {
+        font-family: 'League Spartan', Arial, sans-serif !important;
+        color: #718096;
+        font-size: 1.1em;
+        margin-bottom: 20px;
+        min-height: 48px;
+        font-weight: 400;
+        line-height: 1.5;
+    }
+    
+    .test-card .btn {
+        font-family: 'League Spartan', Arial, sans-serif !important;
+        width: 100%;
+        font-size: 1.1em;
+        padding: 14px 0;
+        margin-top: 10px;
+        background: linear-gradient(135deg, #8b95ab 0%, #667292 100%);
+        color: white;
+        border: none;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .test-card .btn:hover {
+        background: linear-gradient(135deg, #667292 0%, #8b95ab 100%);
+        box-shadow: 0 4px 15px rgba(102, 114, 146, 0.25);
+        transform: translateY(-2px);
+    }
+    
+    .test-card .btn:focus, .test-card .btn:active {
+        outline: 2px solid #8b95ab;
+        outline-offset: 2px;
+    }
+    
+    @media (max-width: 900px) {
+        .test-options { flex-direction: column; gap: 24px; }
+        .test-card { max-width: 100%; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="home-hero">
+    <h1>🎓 GRE Quantitative Practice</h1>
+    <p>Sharpen your quantitative reasoning skills with realistic, adaptive GRE-style practice. Choose your test mode and track your progress over time.</p>
+</div>
+<div class="test-options">
+    <form class="test-card" method="post" action="{{ url_for('start_test') }}">
+        <h2>Quick Practice</h2>
+        <p>12 questions · 18 minutes<br>Perfect for a fast, focused session.</p>
+        <input type="hidden" name="format" value="quick">
+        <button class="btn" type="submit">Start Quick Practice</button>
+    </form>
+    <form class="test-card" method="post" action="{{ url_for('start_test') }}">
+        <h2>Standard Practice</h2>
+        <p>15 questions · 23 minutes<br>Simulates a real GRE section.</p>
+        <input type="hidden" name="format" value="standard">
+        <button class="btn" type="submit">Start Standard Practice</button>
+    </form>
+    <form class="test-card" method="post" action="{{ url_for('start_test') }}">
+        <h2>Full Test</h2>
+        <p>27 questions · 47 minutes<br>Challenge yourself with a full-length set.</p>
+        <input type="hidden" name="format" value="full">
+        <button class="btn" type="submit">Start Full Test</button>
+    </form>
+</div>
+{% endblock %}
