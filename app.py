@@ -11,7 +11,7 @@ app.secret_key = 'your-secret-key-change-this-in-production'
 
 # Load questions from JSON file
 def load_questions():
-    with open('gre_quant_questions.json', 'r') as f:
+    with open('gre_quant_questions_real.json', 'r') as f:
         data = json.load(f)
     questions = []
     id_counter = itertools.count(1)
