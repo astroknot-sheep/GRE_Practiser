@@ -9,12 +9,14 @@ import base64
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this-in-production'
 
-# Load questions from JSON file
+# Load and normalize questions from JSON file
 def load_questions():
-    with open('gre_quant_questions_real.json', 'r') as f:
+    with open('gre_quant_questions_fixed1.json', 'r') as f:
         data = json.load(f)
+    
     questions = []
     id_counter = itertools.count(1)
+    
     for difficulty, qlist in data.items():
         for q in qlist:
             q = q.copy()
@@ -27,23 +29,73 @@ def load_questions():
                 if 'quantityB' in q:
                     q['quantity_b'] = q.pop('quantityB')
             
+            # Assign topic based on question content (you can refine this logic)
+            q['topic'] = assign_topic(q)
+            
+            # Normalize the correct answer format
+            q = normalize_correct_answer(q)
+            
             q['id'] = next(id_counter)
             questions.append(q)
+    
     return questions
+
+def assign_topic(question):
+    """Assign topic based on question content"""
+    q_text = question.get('question', '').lower()
+    
+    if any(word in q_text for word in ['gcd', 'lcm', 'factor', 'prime', 'divisible', 'multiple']):
+        return 'Number Properties'
+    elif any(word in q_text for word in ['volume', 'area', 'radius', 'sphere', 'cone', 'cylinder', 'triangle', 'circle', 'rectangle']):
+        return 'Geometry'
+    elif any(word in q_text for word in ['equation', 'variable', 'solve', 'function', 'absolute']):
+        return 'Algebra'
+    elif any(word in q_text for word in ['percentage', 'ratio', 'proportion', 'average', 'mean']):
+        return 'Arithmetic'
+    elif any(word in q_text for word in ['chart', 'graph', 'data', 'statistics']):
+        return 'Data Analysis'
+    else:
+        return 'Arithmetic'  # Default
+
+def normalize_correct_answer(question):
+    """Normalize the correct answer to be consistent"""
+    q_type = question.get('type')
+    correct = question.get('correct')
+    
+    if q_type == 'qc':
+        # Standard QC options
+        QC_OPTIONS = [
+            "Quantity A is greater",
+            "Quantity B is greater", 
+            "The two quantities are equal",
+            "The relationship cannot be determined from the information given"
+        ]
+        
+        # Convert various formats to standard index
+        if isinstance(correct, int):
+            # Already an index, ensure it's valid
+            if 0 <= correct < 4:
+                question['correct'] = correct
+            else:
+                question['correct'] = 0  # Default
+        elif isinstance(correct, str):
+            # Could be A/B/C/D or full text
+            if correct.upper() in "ABCD":
+                question['correct'] = "ABCD".index(correct.upper())
+            elif correct in QC_OPTIONS:
+                question['correct'] = QC_OPTIONS.index(correct)
+            else:
+                question['correct'] = 0  # Default
+                
+    return question
 
 # GRE distribution patterns
 GRE_DISTRIBUTION = {
     'types': {
-        'qc': 0.40,   # Quantitative Comparison
-        'mc': 0.30,   # Multiple Choice (single)
-        'ma': 0.15,   # Multiple Answer
-        'numeric': 0.15  # Numeric Entry
-    },
-    'topics': {
-        'Arithmetic': 0.45,
-        'Algebra': 0.20,
-        'Geometry': 0.15,
-        'Data Analysis': 0.20
+        'qc': 0.40,
+        'mc': 0.30,
+        'ma': 0.15,
+        'numeric': 0.15
     },
     'difficulty': {
         'easy': 0.30,
@@ -100,9 +152,11 @@ def select_questions(num_questions):
     available_questions = [q for q in all_questions if q['id'] not in attempted]
     
     if len(available_questions) < num_questions:
+        # Reset attempted questions if not enough available
         session['attempted_questions_bitmap'] = base64.b64encode(b'').decode('ascii')
         available_questions = all_questions
     
+    # Select questions based on type distribution
     target_types = {k: int(v * num_questions) for k, v in GRE_DISTRIBUTION['types'].items()}
     total_types = sum(target_types.values())
     if total_types < num_questions:
@@ -116,6 +170,7 @@ def select_questions(num_questions):
         else:
             selected.extend(type_questions)
     
+    # Fill remaining if needed
     if len(selected) < num_questions:
         remaining = [q for q in available_questions if q['id'] not in [s['id'] for s in selected]]
         needed = num_questions - len(selected)
@@ -130,6 +185,7 @@ def index():
 
 @app.route('/start_test', methods=['POST'])
 def start_test():
+    # Clear any existing test data
     session.pop('current_test', None)
     session.pop('current_question_idx', None)
     session['clear_gre_timer'] = True
@@ -147,16 +203,17 @@ def start_test():
     
     questions = select_questions(params['questions'])
     question_ids = [q['id'] for q in questions]
-
+    
+    # Mark questions as attempted
     for q_id in question_ids:
         mark_question_attempted(q_id)
-
+    
     session['current_test'] = {
         'format': test_format,
         'question_ids': question_ids,
         'time_limit': params['time'],
         'start_time': datetime.now().isoformat(),
-        'answers': {}
+        'answers': {}  # Will store answers with string keys
     }
     session['current_question_idx'] = 0
     
@@ -173,6 +230,7 @@ def test():
     question_ids = test_data['question_ids']
     total_questions = len(question_ids)
     
+    # Get current question index
     q_idx = request.args.get('q', type=int)
     if q_idx is None:
         q_idx = session.get('current_question_idx', 0)
@@ -183,14 +241,16 @@ def test():
     session['current_question_idx'] = q_idx
     q_id = question_ids[q_idx]
     question = question_lookup[q_id]
-    answers = test_data.get('answers', {})
     
-    # CRITICAL FIX: Use integer key for answers
+    # Get existing answer if any
+    answers = test_data.get('answers', {})
+    existing_answer = answers.get(str(q_id))  # Use string key consistently
+    
     return render_template('test.html',
         question=question,
         q_idx=q_idx,
         total_questions=total_questions,
-        answer=answers.get(str(q_id)),  # Changed to str key
+        answer=existing_answer,
         time_limit=test_data['time_limit'])
 
 @app.route('/submit_answer', methods=['POST'])
@@ -202,13 +262,16 @@ def submit_answer():
     question_id = data.get('question_id')
     answer = data.get('answer')
     
+    # Ensure question_id is stored as string
     try:
-        question_id = str(int(question_id))  # Changed to str key
+        question_id = str(int(question_id))
     except (TypeError, ValueError):
         return jsonify({'error': 'Invalid question id'}), 400
     
+    # Store the answer
     session['current_test']['answers'][question_id] = answer
     session.modified = True
+    
     return jsonify({'success': True})
 
 @app.route('/submit_test', methods=['POST'])
@@ -220,117 +283,158 @@ def submit_test():
     all_questions = load_questions()
     question_lookup = {q['id']: q for q in all_questions}
     question_ids = test_data['question_ids']
-    user_answers = test_data['answers']
+    user_answers = test_data.get('answers', {})
     
     correct = 0
     total = len(question_ids)
     results_detail = []
     
-    # Standard QC options
-    QC_OPTIONS = [
-        "Quantity A is greater",
-        "Quantity B is greater",
-        "The two quantities are equal",
-        "The relationship cannot be determined from the information given"
-    ]
-    
     for q_id in question_ids:
         question = question_lookup[q_id]
-        correct_spec = question.get('correct')
-        user_answer = user_answers.get(str(q_id), '')  # Changed to str key
-        is_correct = False
+        user_answer = user_answers.get(str(q_id))  # Use string key
         
-        try:
-            if question['type'] == 'mc':
-                # Convert index to actual option text
-                correct_index = int(correct_spec)
-                correct_text = question['options'][correct_index]
-                is_correct = str(user_answer) == str(correct_text)
-            
-            elif question['type'] == 'ma':
-                # Convert indices to actual option texts
-                correct_indices = [int(i) for i in correct_spec]
-                correct_texts = [question['options'][i] for i in correct_indices]
-                if isinstance(user_answer, list):
-                    is_correct = set(user_answer) == set(correct_texts)
-                else:
-                    is_correct = False
-            
-            elif question['type'] == 'qc':
-                # Handle all QC variants
-                expected_index = None
-                
-                # Case 1: numeric index (0,1,2,3)
-                if isinstance(correct_spec, int) and 0 <= correct_spec < 4:
-                    expected_index = correct_spec
-                # Case 2: letter (A,B,C,D)
-                elif isinstance(correct_spec, str) and correct_spec.upper() in "ABCD":
-                    expected_index = "ABCD".index(correct_spec.upper())
-                # Case 3: full text match
-                elif isinstance(correct_spec, str) and correct_spec in QC_OPTIONS:
-                    expected_index = QC_OPTIONS.index(correct_spec)
-                
-                # Get user answer index
-                user_index = None
-                if isinstance(user_answer, str):
-                    if user_answer.upper() in "ABCD":
-                        user_index = "ABCD".index(user_answer.upper())
-                    elif user_answer in QC_OPTIONS:
-                        user_index = QC_OPTIONS.index(user_answer)
-                
-                is_correct = (expected_index is not None) and (user_index is not None) and (expected_index == user_index)
-            
-            elif question['type'] == 'numeric':
-                # Numeric comparison with tolerance
-                try:
-                    user_num = float(user_answer)
-                    correct_num = float(correct_spec)
-                    is_correct = abs(user_num - correct_num) < 1e-6
-                except (ValueError, TypeError):
-                    is_correct = str(user_answer) == str(correct_spec)
-            
-            else:
-                is_correct = str(user_answer) == str(correct_spec)
-        
-        except Exception as e:
-            print(f"Scoring error for question {q_id}: {str(e)}")
-            is_correct = False
+        # Score the answer
+        is_correct = score_answer(question, user_answer)
         
         if is_correct:
             correct += 1
         
+        # Format the correct answer for display
+        display_correct = format_correct_answer(question)
+        
         results_detail.append({
             'question': question,
-            'user_answer': user_answer,
-            'correct': is_correct
+            'user_answer': format_user_answer(question, user_answer),
+            'correct': is_correct,
+            'correct_answer': display_correct
         })
     
-    accuracy = (correct / total * 100) if total > 0 else 0
+    accuracy = round((correct / total * 100) if total > 0 else 0, 1)
     
+    # Update test history
     if 'test_history' not in session:
         session['test_history'] = []
     
     session['test_history'].append({
         'date': datetime.now().isoformat(),
         'format': test_data['format'],
-        'accuracy': round(accuracy, 1),
+        'accuracy': accuracy,
         'correct': correct,
         'total': total
     })
     
+    # Keep only last 10 tests
     session['test_history'] = session['test_history'][-10:]
     
+    # Store results for display
     session['last_results'] = {
-        'accuracy': round(accuracy, 1),
+        'accuracy': accuracy,
         'correct': correct,
         'total': total,
         'details': results_detail
     }
     
+    # Clear current test
     session.pop('current_test', None)
     session.modified = True
     
     return redirect(url_for('results'))
+
+def score_answer(question, user_answer):
+    """Score a single answer"""
+    if user_answer is None or user_answer == '':
+        return False
+    
+    q_type = question['type']
+    correct = question.get('correct')
+    
+    try:
+        if q_type == 'mc':
+            # Multiple choice - correct is an index
+            if isinstance(correct, int) and 0 <= correct < len(question['options']):
+                correct_text = question['options'][correct]
+                return str(user_answer) == str(correct_text)
+            return False
+            
+        elif q_type == 'ma':
+            # Multiple answer - correct is a list of indices
+            if not isinstance(user_answer, list):
+                return False
+            correct_indices = correct if isinstance(correct, list) else [correct]
+            correct_texts = [question['options'][i] for i in correct_indices if i < len(question['options'])]
+            return set(user_answer) == set(correct_texts)
+            
+        elif q_type == 'qc':
+            # Quantitative comparison
+            QC_OPTIONS = [
+                "Quantity A is greater",
+                "Quantity B is greater",
+                "The two quantities are equal",
+                "The relationship cannot be determined from the information given"
+            ]
+            
+            # Get the correct answer index (should be normalized by now)
+            correct_idx = correct if isinstance(correct, int) else 0
+            
+            # Get user answer index
+            user_idx = None
+            if user_answer in QC_OPTIONS:
+                user_idx = QC_OPTIONS.index(user_answer)
+            
+            return user_idx == correct_idx
+            
+        elif q_type == 'numeric':
+            # Numeric answer
+            try:
+                user_num = float(str(user_answer).strip())
+                correct_num = float(correct)
+                # Allow small tolerance for floating point
+                return abs(user_num - correct_num) < 0.01
+            except (ValueError, TypeError):
+                return False
+                
+    except Exception as e:
+        print(f"Error scoring question {question.get('id')}: {e}")
+        return False
+    
+    return False
+
+def format_correct_answer(question):
+    """Format the correct answer for display"""
+    q_type = question['type']
+    correct = question.get('correct')
+    
+    if q_type == 'mc':
+        if isinstance(correct, int) and 0 <= correct < len(question['options']):
+            return question['options'][correct]
+        return "Error in answer"
+        
+    elif q_type == 'ma':
+        correct_indices = correct if isinstance(correct, list) else [correct]
+        return [question['options'][i] for i in correct_indices if i < len(question['options'])]
+        
+    elif q_type == 'qc':
+        QC_OPTIONS = [
+            "Quantity A is greater",
+            "Quantity B is greater",
+            "The two quantities are equal",
+            "The relationship cannot be determined from the information given"
+        ]
+        idx = correct if isinstance(correct, int) else 0
+        return QC_OPTIONS[idx] if idx < len(QC_OPTIONS) else "Error"
+        
+    elif q_type == 'numeric':
+        return str(correct)
+        
+    return str(correct)
+
+def format_user_answer(question, user_answer):
+    """Format user answer for display"""
+    if user_answer is None:
+        return None
+    if isinstance(user_answer, list):
+        return user_answer
+    return str(user_answer)
 
 @app.route('/results')
 def results():
