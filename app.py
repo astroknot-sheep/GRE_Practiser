@@ -11,7 +11,7 @@ app.secret_key = 'your-secret-key-change-this-in-production'
 
 # Load and normalize questions from JSON file
 def load_questions():
-    with open('gre_quant_questions_fixed1.json', 'r') as f:
+    with open('gre_quant_questions.json', 'r') as f:
         data = json.load(f)
     
     questions = []
