@@ -13,7 +13,7 @@
     }
     
     .profile-header {
-        background: linear-gradient(135deg, #8b95ab 0%, #667292 100%);
+        background: linear-gradient(135deg, #667292 0%, #8b95ab 100%);
         color: white;
         padding: 40px;
         border-radius: 16px;
@@ -58,7 +58,7 @@
     .stat-value {
         font-size: 2.5em;
         font-weight: 700;
-        color: #667292;
+        color: #4a5568;
         margin-bottom: 8px;
         font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
     }
@@ -70,7 +70,7 @@
     }
     
     .progress-section {
-        background: #fafbfc;
+        background: white;
         padding: 30px;
         border-radius: 12px;
         margin-bottom: 30px;
@@ -79,7 +79,7 @@
     
     .progress-section h3 {
         font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
-        color: #667292;
+        color: #4a5568;
         margin-bottom: 20px;
         font-size: 1.8em;
     }
@@ -93,7 +93,7 @@
     }
     
     .progress-bar-fill {
-        background: linear-gradient(90deg, #8b95ab 0%, #667292 100%);
+        background: linear-gradient(90deg, #667292 0%, #8b95ab 100%);
         height: 100%;
         display: flex;
         align-items: center;
@@ -173,7 +173,7 @@
 
 {% block content %}
 <div class="profile-header">
-    <h2>👤 Your Profile</h2>
+    <h2>Your Profile</h2>
     <p>{{ email }}</p>
 </div>
 
@@ -197,7 +197,7 @@
 </div>
 
 <div class="progress-section">
-    <h3>📊 Question Bank Progress</h3>
+    <h3>Question Bank Progress</h3>
     <p style="color: #718096; margin-bottom: 15px;">
         You've attempted {{ questions_attempted }} out of {{ total_available }} available questions
     </p>
@@ -212,7 +212,7 @@
 </div>
 
 <div class="progress-section">
-    <h3>📈 Recent Test History</h3>
+    <h3>Recent Test History</h3>
     {% if test_history|length > 0 %}
     <table class="history-table">
         <thead>
