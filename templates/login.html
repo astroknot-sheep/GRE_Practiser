@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Login - GRE Quantitative Practice{% endblock %}
+
+{% block extra_styles %}
+<style>
+    * {
+        font-family: 'League Spartan', Arial, sans-serif !important;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
+    }
+    
+    .auth-container {
+        max-width: 450px;
+        margin: 60px auto;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        padding: 40px;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .auth-header {
+        text-align: center;
+        margin-bottom: 35px;
+    }
+    
+    .auth-header h2 {
+        font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
+        font-size: 2.2em;
+        color: #667292;
+        margin-bottom: 10px;
+        font-weight: 700;
+    }
+    
+    .auth-header p {
+        font-family: 'League Spartan', Arial, sans-serif !important;
+        color: #718096;
+        font-size: 1.1em;
+    }
+    
+    .form-group {
+        margin-bottom: 25px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #4a5568;
+        font-weight: 600;
+        font-size: 1.05em;
+    }
+    
+    .form-group input {
+        width: 100%;
+        padding: 14px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 1.05em;
+        font-family: 'League Spartan', Arial, sans-serif !important;
+        transition: all 0.3s;
+    }
+    
+    .form-group input:focus {
+        outline: none;
+        border-color: #8b95ab;
+        box-shadow: 0 0 0 3px rgba(139, 149, 171, 0.1);
+    }
+    
+    .btn-auth {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(135deg, #8b95ab 0%, #667292 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.15em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-top: 10px;
+        font-family: 'League Spartan', Arial, sans-serif !important;
+    }
+    
+    .btn-auth:hover {
+        background: linear-gradient(135deg, #667292 0%, #8b95ab 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(102, 114, 146, 0.25);
+    }
+    
+    .auth-divider {
+        text-align: center;
+        margin: 30px 0;
+        color: #a0aec0;
+        position: relative;
+    }
+    
+    .auth-divider::before,
+    .auth-divider::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        width: 42%;
+        height: 1px;
+        background: #e2e8f0;
+    }
+    
+    .auth-divider::before {
+        left: 0;
+    }
+    
+    .auth-divider::after {
+        right: 0;
+    }
+    
+    .auth-link {
+        text-align: center;
+        margin-top: 25px;
+        font-size: 1.05em;
+        color: #718096;
+    }
+    
+    .auth-link a {
+        color: #667292;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s;
+    }
+    
+    .auth-link a:hover {
+        color: #8b95ab;
+        text-decoration: underline;
+    }
+    
+    .flash-messages {
+        margin-bottom: 20px;
+    }
+    
+    .flash-message {
+        padding: 14px 18px;
+        border-radius: 10px;
+        margin-bottom: 12px;
+        font-family: 'League Spartan', Arial, sans-serif !important;
+        font-size: 1.05em;
+    }
+    
+    .flash-error {
+        background: #fee;
+        color: #c53030;
+        border: 1px solid #fc8181;
+    }
+    
+    .flash-warning {
+        background: #fff8e1;
+        color: #f57c00;
+        border: 1px solid #ffb74d;
+    }
+    
+    .flash-success {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid #66bb6a;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-header">
+        <h2>🔐 Welcome Back!</h2>
+        <p>Login to continue your GRE practice</p>
+    </div>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    
+    <form method="POST" action="{{ url_for('login') }}">
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" placeholder="your@email.com" required autofocus>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Enter your password" required>
+        </div>
+        
+        <button type="submit" class="btn-auth">Login</button>
+    </form>
+    
+    <div class="auth-divider">or</div>
+    
+    <div class="auth-link">
+        Don't have an account? <a href="{{ url_for('register') }}">Sign up here</a>
+    </div>
+</div>
+{% endblock %}
