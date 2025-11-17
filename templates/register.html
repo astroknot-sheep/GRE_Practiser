@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Sign Up - GRE Quantitative Practice{% endblock %}
+{% block title %}Results - GRE Quantitative Practice{% endblock %}
 
 {% block extra_styles %}
 <style>
@@ -12,258 +12,305 @@
         font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
     }
     
-    .auth-container {
-        max-width: 450px;
-        margin: 60px auto;
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    .score-banner {
+        background: linear-gradient(135deg, #667292 0%, #8b95ab 100%);
+        color: white;
         padding: 40px;
-        border: 1px solid #e2e8f0;
-    }
-    
-    .auth-header {
+        border-radius: 12px;
         text-align: center;
-        margin-bottom: 35px;
+        margin-bottom: 40px;
+        box-shadow: 0 4px 15px rgba(102, 114, 146, 0.2);
     }
     
-    .auth-header h2 {
+    .score-banner h2 {
         font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
-        font-size: 2.2em;
-        color: #4a5568;
+        font-size: 3em;
         margin-bottom: 10px;
         font-weight: 700;
     }
     
-    .auth-header p {
+    .score-banner p {
+        opacity: 0.95;
+    }
+    
+    .score-details {
         font-family: 'League Spartan', Arial, sans-serif !important;
-        color: #718096;
-        font-size: 1.1em;
-        line-height: 1.5;
-    }
-    
-    .form-group {
-        margin-bottom: 25px;
-    }
-    
-    .form-group label {
-        display: block;
-        margin-bottom: 8px;
-        color: #4a5568;
-        font-weight: 600;
-        font-size: 1.05em;
-    }
-    
-    .form-group input {
-        width: 100%;
-        padding: 14px;
-        border: 1.5px solid #e2e8f0;
-        border-radius: 10px;
-        font-size: 1.05em;
-        font-family: 'League Spartan', Arial, sans-serif !important;
-        transition: all 0.3s;
-    }
-    
-    .form-group input:focus {
-        outline: none;
-        border-color: #667292;
-        box-shadow: 0 0 0 3px rgba(102, 114, 146, 0.1);
-    }
-    
-    .form-group small {
-        display: block;
-        margin-top: 6px;
-        color: #a0aec0;
-        font-size: 0.9em;
-    }
-    
-    .btn-auth {
-        width: 100%;
-        padding: 16px;
-        background: linear-gradient(135deg, #667292 0%, #8b95ab 100%);
-        color: white;
-        border: none;
-        border-radius: 10px;
-        font-size: 1.15em;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s;
-        margin-top: 10px;
-        font-family: 'League Spartan', Arial, sans-serif !important;
-    }
-    
-    .btn-auth:hover {
-        background: linear-gradient(135deg, #8b95ab 0%, #667292 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(102, 114, 146, 0.25);
-    }
-    
-    .auth-divider {
-        text-align: center;
-        margin: 30px 0;
-        color: #a0aec0;
-        position: relative;
-    }
-    
-    .auth-divider::before,
-    .auth-divider::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        width: 42%;
-        height: 1px;
-        background: #e2e8f0;
-    }
-    
-    .auth-divider::before {
-        left: 0;
-    }
-    
-    .auth-divider::after {
-        right: 0;
-    }
-    
-    .auth-link {
-        text-align: center;
-        margin-top: 25px;
-        font-size: 1.05em;
-        color: #718096;
-    }
-    
-    .auth-link a {
-        color: #4a5568;
-        text-decoration: none;
-        font-weight: 600;
-        transition: color 0.3s;
-    }
-    
-    .auth-link a:hover {
-        color: #667292;
-        text-decoration: underline;
-    }
-    
-    .flash-messages {
-        margin-bottom: 20px;
-    }
-    
-    .flash-message {
-        padding: 14px 18px;
-        border-radius: 10px;
-        margin-bottom: 12px;
-        font-family: 'League Spartan', Arial, sans-serif !important;
-        font-size: 1.05em;
-    }
-    
-    .flash-error {
-        background: #fee;
-        color: #c53030;
-        border: 1px solid #fc8181;
-    }
-    
-    .flash-warning {
-        background: #fff8e1;
-        color: #f57c00;
-        border: 1px solid #ffb74d;
-    }
-    
-    .flash-success {
-        background: #e8f5e9;
-        color: #2e7d32;
-        border: 1px solid #66bb6a;
-    }
-    
-    .benefits-list {
-        background: #f8f9fb;
-        border-radius: 10px;
-        padding: 20px;
-        margin-top: 25px;
-        border: 1px solid #e2e8f0;
-    }
-    
-    .benefits-list h4 {
-        font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
-        color: #4a5568;
-        margin-bottom: 15px;
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        margin-top: 20px;
         font-size: 1.2em;
     }
     
-    .benefits-list ul {
-        list-style: none;
-        padding: 0;
+    .chart-container {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        margin-bottom: 40px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
     
-    .benefits-list li {
-        padding: 8px 0;
+    .chart-container h3 {
+        font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
         color: #4a5568;
-        font-size: 1.05em;
-        position: relative;
-        padding-left: 25px;
+        margin-bottom: 20px;
+        text-align: center;
     }
     
-    .benefits-list li:before {
-        content: "•";
-        position: absolute;
-        left: 0;
-        color: #667292;
-        font-weight: bold;
+    #historyChart {
+        width: 100%;
+        height: 300px;
+    }
+    
+    .question-review {
+        margin-top: 40px;
+    }
+    
+    .question-review h3 {
+        font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
+        color: #4a5568;
+    }
+    
+    .review-card {
+        font-family: 'League Spartan', Arial, sans-serif !important;
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 20px;
+        border-left: 4px solid #e2e8f0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .review-card.correct {
+        border-left-color: #66bb6a;
+        background: #f1f8f4;
+    }
+    
+    .review-card.incorrect {
+        border-left-color: #ef5350;
+        background: #fef5f5;
+    }
+    
+    .review-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .review-status {
+        font-weight: 600;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.9em;
+    }
+    
+    .review-status.correct {
+        background: #66bb6a;
+        color: white;
+    }
+    
+    .review-status.incorrect {
+        background: #ef5350;
+        color: white;
+    }
+    
+    .review-question {
+        font-size: 1.1em;
+        margin-bottom: 15px;
+        color: #2d3748;
+        line-height: 1.6;
+    }
+    
+    .review-answer {
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin: 8px 0;
+    }
+    
+    .your-answer {
+        background: #f0f4f8;
+        color: #4a5568;
+        border-left: 3px solid #8b95ab;
+    }
+    
+    .correct-answer {
+        background: #f1f8f4;
+        color: #2e7d32;
+        border-left: 3px solid #66bb6a;
+    }
+    
+    .actions {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+    }
+    
+    .no-history {
+        font-family: 'League Spartan', Arial, sans-serif !important;
+        text-align: center;
+        padding: 40px;
+        color: #718096;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-header">
-        <h2>Create Your Account</h2>
-        <p>Join to prepare for GRE success</p>
-    </div>
-    
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="flash-messages">
-                {% for category, message in messages %}
-                    <div class="flash-message flash-{{ category }}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
-    
-    <form method="POST" action="{{ url_for('register') }}">
-        <div class="form-group">
-            <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" placeholder="your@email.com" required autofocus>
-            <small>We'll never share your email with anyone else.</small>
-        </div>
-        
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" placeholder="Create a strong password" required>
-            <small>Minimum 6 characters</small>
-        </div>
-        
-        <div class="form-group">
-            <label for="confirm_password">Confirm Password</label>
-            <input type="password" id="confirm_password" name="confirm_password" placeholder="Re-enter your password" required>
-        </div>
-        
-        <button type="submit" class="btn-auth">Create Account</button>
-    </form>
-    
-    <div class="benefits-list">
-        <h4>Benefits of Signing Up</h4>
-        <ul>
-            <li>Track your progress across sessions</li>
-            <li>Avoid repeating questions</li>
-            <li>Access detailed performance analytics</li>
-            <li>Resume tests from where you left off</li>
-        </ul>
-    </div>
-    
-    <div class="auth-divider">or</div>
-    
-    <div class="auth-link">
-        Already have an account? <a href="{{ url_for('login') }}">Login here</a>
+<div class="score-banner">
+    <h2>{{ results.accuracy }}%</h2>
+    <p style="font-size: 1.3em;">Accuracy</p>
+    <div class="score-details">
+        <div>Correct: {{ results.correct }}</div>
+        <div>Incorrect: {{ results.total - results.correct }}</div>
+        <div>Total: {{ results.total }}</div>
     </div>
 </div>
+
+{% if history|length > 0 %}
+<div class="chart-container">
+    <h3>Performance History (Last 10 Tests)</h3>
+    <svg width="100%" height="120" id="simpleHistoryChart"></svg>
+</div>
+{% else %}
+<div class="no-history">
+    <p>This is your first test. Continue practicing to track your progress.</p>
+</div>
+{% endif %}
+
+<div class="question-review">
+    <h3 style="color: #4a5568; margin-bottom: 20px;">Detailed Review</h3>
+    
+    {% for detail in results.details %}
+    <div class="review-card {% if detail.correct %}correct{% else %}incorrect{% endif %}">
+        <div class="review-header">
+            <span style="font-weight: 600; color: #4a5568;">
+                Question {{ loop.index }}
+            </span>
+            <span class="review-status {% if detail.correct %}correct{% else %}incorrect{% endif %}">
+                {% if detail.correct %}Correct{% else %}Incorrect{% endif %}
+            </span>
+        </div>
+        
+        <div class="review-question">
+            {{ detail.question.question }}
+        </div>
+        
+        {% if detail.question.type == 'qc' %}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0;">
+            <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <strong>Quantity A:</strong> {{ detail.question.quantity_a }}
+            </div>
+            <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <strong>Quantity B:</strong> {{ detail.question.quantity_b }}
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="review-answer your-answer">
+            <strong>Your Answer:</strong> 
+            {% set user_ans = detail.user_answer %}
+            {% if user_ans %}
+                {% if detail.question.type == 'ma' %}
+                    {{ user_ans|join(', ') if user_ans is sequence else user_ans }}
+                {% elif detail.question.type == 'qc' %}
+                    {% set QC_OPTIONS = ["Quantity A is greater", "Quantity B is greater", "The two quantities are equal", "The relationship cannot be determined from the information given"] %}
+                    {{ QC_OPTIONS[user_ans|int] if user_ans is number and 0 <= user_ans|int < QC_OPTIONS|length else user_ans }}
+                {% else %}
+                    {{ user_ans }}
+                {% endif %}
+            {% else %}
+                <em>Not answered</em>
+            {% endif %}
+        </div>
+        
+        {% if not detail.correct %}
+        <div class="review-answer correct-answer">
+            <strong>Correct Answer:</strong> 
+            {% set q = detail.question %}
+            {% set correct = q.correct %}
+            {% if q.type == 'mc' %}
+                {{ q.options[correct] if correct is number and 0 <= correct < q.options|length else 'Error' }}
+            {% elif q.type == 'ma' %}
+                {{ [q.options[i] for i in (correct if correct is sequence else [correct]) if 0 <= i < q.options|length] | join(', ') }}
+            {% elif q.type == 'qc' %}
+                {% set QC_OPTIONS = ["Quantity A is greater", "Quantity B is greater", "The two quantities are equal", "The relationship cannot be determined from the information given"] %}
+                {{ QC_OPTIONS[correct] if correct is number and 0 <= correct < QC_OPTIONS|length else 'Error' }}
+            {% elif q.type == 'numeric' %}
+                {{ correct }}
+            {% else %}
+                {{ correct }}
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        {% if detail.question.explanation %}
+        <div style="margin-top: 15px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <strong>Explanation:</strong><br>
+            {{ detail.question.explanation }}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+<div class="actions">
+    <a href="/" class="btn">Take Another Test</a>
+    <button onclick="resetHistory()" class="btn btn-secondary">Reset Question History</button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    {% if history|length > 0 %}
+    // Simple SVG line chart for accuracy history
+    const historyData = {{ history|tojson }};
+    const svg = document.getElementById('simpleHistoryChart');
+    const width = svg.clientWidth || 600;
+    const height = svg.clientHeight || 120;
+    const margin = 30;
+    const n = historyData.length;
+    const maxY = 100;
+    // X spacing
+    const xStep = (width - 2 * margin) / Math.max(n - 1, 1);
+    // Y scale
+    function yScale(val) {
+        return height - margin - (val / maxY) * (height - 2 * margin);
+    }
+    // Draw axes
+    svg.innerHTML = `<line x1="${margin}" y1="${height-margin}" x2="${width-margin}" y2="${height-margin}" stroke="#d4dce6" stroke-width="1" />
+                     <line x1="${margin}" y1="${margin}" x2="${margin}" y2="${height-margin}" stroke="#d4dce6" stroke-width="1" />`;
+    // Draw points and lines
+    let points = historyData.map((item, i) => {
+        const x = margin + i * xStep;
+        const y = yScale(item.accuracy);
+        return {x, y, acc: item.accuracy};
+    });
+    // Draw lines
+    for (let i = 1; i < points.length; i++) {
+        svg.innerHTML += `<line x1="${points[i-1].x}" y1="${points[i-1].y}" x2="${points[i].x}" y2="${points[i].y}" stroke="#8b95ab" stroke-width="2.5" />`;
+    }
+    // Draw points
+    for (let pt of points) {
+        svg.innerHTML += `<circle cx="${pt.x}" cy="${pt.y}" r="5" fill="#667292" />`;
+        svg.innerHTML += `<text x="${pt.x}" y="${pt.y - 10}" font-size="12" text-anchor="middle" fill="#4a5568" font-weight="600">${pt.acc}%</text>`;
+    }
+    {% endif %}
+    
+    function resetHistory() {
+        if (confirm('Are you sure you want to reset your question history? This will allow you to see all questions again.')) {
+            fetch('/reset_history', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Question history has been reset!');
+                }
+            });
+        }
+    }
+</script>
 {% endblock %}
