@@ -225,9 +225,9 @@
         <div class="review-answer correct-answer">
             <strong>Correct Answer:</strong> 
             {% if detail.question.type == 'ma' %}
-                {{ detail.question.correct|join(', ') }}
+                {{ detail.correct_answer|join(', ') }}
             {% else %}
-                {{ detail.question.correct }}
+                {{ detail.correct_answer }}
             {% endif %}
         </div>
         {% endif %}
