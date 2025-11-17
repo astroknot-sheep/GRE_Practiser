@@ -13,8 +13,8 @@
     }
     
     .timer-section {
-        background: linear-gradient(135deg, #fff8e1 0%, #fff3d0 100%);
-        border: 1px solid #ffe0b2;
+        background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+        border: 1px solid #d4dce6;
         border-radius: 12px;
         padding: 20px;
         text-align: center;
@@ -28,22 +28,22 @@
     .timer {
         font-size: 2.5em;
         font-weight: bold;
-        color: #f57c00;
+        color: #4a5568;
         font-family: 'Courier New', monospace;
     }
     
     .timer.warning {
-        color: #d84315;
+        color: #ef5350;
         animation: pulse 1s infinite;
     }
     
     @keyframes pulse {
         0%, 100% { opacity: 1; }
-        50% { opacity: 0.6; }
+        50% { opacity: 0.8; }
     }
     
     .progress-bar {
-        background: #f0f4f8;
+        background: #e2e8f0;
         height: 8px;
         border-radius: 4px;
         margin-top: 15px;
@@ -51,13 +51,13 @@
     }
     
     .progress-fill {
-        background: linear-gradient(90deg, #8b95ab 0%, #667292 100%);
+        background: linear-gradient(90deg, #667292 0%, #8b95ab 100%);
         height: 100%;
         transition: width 0.3s;
     }
     
     .question-card {
-        background: #fafbfc;
+        background: white;
         border-radius: 12px;
         padding: 30px;
         margin-bottom: 30px;
@@ -78,7 +78,7 @@
         font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
         font-size: 1.2em;
         font-weight: 700;
-        color: #667292;
+        color: #4a5568;
     }
     
     .question-meta {
@@ -100,13 +100,13 @@
     }
     
     .badge-topic {
-        background: #f3e5f5;
-        color: #7b1fa2;
+        background: #e8ecf1;
+        color: #667292;
     }
     
     .badge-difficulty {
-        background: #fff3e0;
-        color: #e65100;
+        background: #f0f4f8;
+        color: #4a5568;
     }
     
     .question-text {
@@ -136,7 +136,7 @@
     }
     
     .option:hover {
-        border-color: #8b95ab;
+        border-color: #667292;
         background: #f8f9fb;
     }
     
@@ -169,8 +169,8 @@
     
     .numeric-input:focus {
         outline: none;
-        border-color: #8b95ab;
-        box-shadow: 0 0 0 3px rgba(139, 149, 171, 0.1);
+        border-color: #667292;
+        box-shadow: 0 0 0 3px rgba(102, 114, 146, 0.1);
     }
     
     .qc-quantities {
@@ -191,7 +191,7 @@
     .quantity-label {
         font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
         font-weight: 700;
-        color: #667292;
+        color: #4a5568;
         margin-bottom: 10px;
         font-size: 1.1em;
     }
@@ -206,7 +206,7 @@
         text-align: center;
         margin-top: 40px;
         padding: 30px;
-        background: #fafbfc;
+        background: white;
         border-radius: 12px;
         border: 1px solid #e2e8f0;
     }
@@ -221,7 +221,7 @@
 
 {% block content %}
 <div class="timer-section">
-    <div style="font-size: 1.2em; margin-bottom: 10px; color: #f57c00; font-weight: 600;">⏰ Time Remaining</div>
+    <div style="font-size: 1.2em; margin-bottom: 10px; color: #4a5568; font-weight: 600;">Time Remaining</div>
     <div class="timer" id="timer">{{ time_limit }}:00</div>
     <div class="progress-bar">
         <div class="progress-fill" id="progress"></div>
@@ -278,7 +278,7 @@
             {% for option in question.options %}
             <label class="option">
                 <input type="checkbox" name="q{{ question.id }}" value="{{ option }}" 
-                       {% if answer and option in answer %}checked{% endif %}
+                       {% if answer|list and option in (answer|list) %}checked{% endif %}
                        onchange="saveMultipleAnswer('{{ question.id }}'); 
                                  this.parentElement.classList.toggle('selected', this.checked);">
                 {{ option }}
@@ -313,13 +313,13 @@
     <div class="submit-section">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             {% if q_idx > 0 %}
-            <a href="{{ url_for('test', q=q_idx-1) }}" class="btn btn-secondary">Previous</a>
+            <a href="{{ url_for('test', q_idx=q_idx-1) }}" class="btn btn-secondary">Previous</a>
             {% else %}
             <span></span>
             {% endif %}
             
             {% if q_idx < total_questions - 1 %}
-            <a href="{{ url_for('test', q=q_idx+1) }}" class="btn">Next</a>
+            <a href="{{ url_for('test', q_idx=q_idx+1) }}" class="btn">Next</a>
             {% else %}
             <button type="button" class="btn" onclick="confirmSubmit()">Submit Test</button>
             {% endif %}
