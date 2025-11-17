@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}GRE Quantitative Practice{% endblock %}
+
+{% block extra_styles %}
+<style>
+    html, body, * {
+        font-family: 'League Spartan', Arial, sans-serif !important;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
+    }
+    
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%) !important;
+    }
+    
+    .user-nav {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+    
+    .user-nav a {
+        color: #4a5568;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 10px 20px;
+        border-radius: 8px;
+        transition: all 0.3s;
+        background: white;
+        border: 1px solid #e2e8f0;
+        font-size: 1.05em;
+    }
+    
+    .user-nav a:hover {
+        background: linear-gradient(135deg, #667292 0%, #8b95ab 100%);
+        color: white;
+        border-color: #667292;
+    }
+    
+    .user-email {
+        color: #4a5568;
+        font-weight: 500;
+        margin-right: 10px;
+    }
+    
+    .home-hero {
+        background: white;
+        color: #2d3748;
+        border-radius: 20px;
+        padding: 50px 32px 40px 32px;
+        text-align: center;
+        margin-bottom: 48px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.06);
+        border: 1px solid #d4dce6;
+        position: relative;
+    }
+    
+    .home-hero h1 {
+        font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
+        font-size: 3em;
+        font-weight: 700;
+        margin-bottom: 14px;
+        letter-spacing: -0.5px;
+        color: #4a5568;
+    }
+    
+    .home-hero p {
+        font-family: 'League Spartan', Arial, sans-serif !important;
+        font-size: 1.25em;
+        margin-bottom: 0;
+        color: #4a5568;
+        font-weight: 400;
+        line-height: 1.6;
+    }
+    
+    .test-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 32px;
+        justify-content: center;
+        margin-top: 36px;
+    }
+    
+    .test-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        padding: 36px 30px 30px 30px;
+        min-width: 260px;
+        max-width: 340px;
+        flex: 1 1 260px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: all 0.3s ease;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .test-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(102, 114, 146, 0.15);
+        border-color: #667292;
+    }
+    
+    .test-card h2 {
+        font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
+        font-size: 1.5em;
+        font-weight: 700;
+        color: #4a5568;
+        margin-bottom: 12px;
+        letter-spacing: -0.3px;
+    }
+    
+    .test-card p {
+        font-family: 'League Spartan', Arial, sans-serif !important;
+        color: #718096;
+        font-size: 1.1em;
+        margin-bottom: 20px;
+        min-height: 48px;
+        font-weight: 400;
+        line-height: 1.5;
+    }
+    
+    .test-card .btn {
+        font-family: 'League Spartan', Arial, sans-serif !important;
+        width: 100%;
+        font-size: 1.1em;
+        padding: 14px 0;
+        margin-top: 10px;
+        background: linear-gradient(135deg, #667292 0%, #8b95ab 100%);
+        color: white;
+        border: none;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .test-card .btn:hover {
+        background: linear-gradient(135deg, #8b95ab 0%, #667292 100%);
+        box-shadow: 0 4px 15px rgba(102, 114, 146, 0.25);
+        transform: translateY(-2px);
+    }
+    
+    .test-card .btn:focus, .test-card .btn:active {
+        outline: 2px solid #667292;
+        outline-offset: 2px;
+    }
+    
+    .login-prompt {
+        background: white;
+        border: 1px solid #d4dce6;
+        border-radius: 12px;
+        padding: 30px;
+        text-align: center;
+        margin: 30px auto;
+        max-width: 600px;
+    }
+    
+    .login-prompt h3 {
+        color: #4a5568;
+        margin-bottom: 15px;
+        font-size: 1.5em;
+    }
+    
+    .login-prompt p {
+        color: #718096;
+        margin-bottom: 20px;
+        font-size: 1.1em;
+    }
+    
+    .login-prompt-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+    }
+    
+    .flash-messages {
+        max-width: 800px;
+        margin: 20px auto;
+    }
+    
+    .flash-message {
+        padding: 14px 18px;
+        border-radius: 10px;
+        margin-bottom: 12px;
+        font-family: 'League Spartan', Arial, sans-serif !important;
+        font-size: 1.05em;
+        text-align: center;
+    }
+    
+    .flash-success {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid #66bb6a;
+    }
+    
+    @media (max-width: 900px) {
+        .test-options { flex-direction: column; gap: 24px; }
+        .test-card { max-width: 100%; }
+        .user-nav { position: static; margin-bottom: 20px; justify-content: center; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if logged_in %}
+<div class="user-nav">
+    <span class="user-email">{{ session['user_email'] }}</span>
+    <a href="{{ url_for('profile') }}">Profile</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+</div>
+{% else %}
+<div class="user-nav">
+    <a href="{{ url_for('login') }}">Login</a>
+    <a href="{{ url_for('register') }}">Sign Up</a>
+</div>
+{% endif %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+                <div class="flash-message flash-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<div class="home-hero">
+    <h1>GRE Quantitative Practice</h1>
+    <p>Enhance your quantitative reasoning skills with realistic GRE-style practice questions. Select a test mode and monitor your progress.</p>
+</div>
+
+{% if logged_in %}
+<div class="test-options">
+    <form class="test-card" method="post" action="{{ url_for('start_test') }}">
+        <h2>Quick Practice</h2>
+        <p>12 questions · 18 minutes<br>Ideal for a focused session.</p>
+        <input type="hidden" name="format" value="quick">
+        <button class="btn" type="submit">Start Quick Practice</button>
+    </form>
+    <form class="test-card" method="post" action="{{ url_for('start_test') }}">
+        <h2>Standard Practice</h2>
+        <p>15 questions · 23 minutes<br>Simulates a GRE section.</p>
+        <input type="hidden" name="format" value="standard">
+        <button class="btn" type="submit">Start Standard Practice</button>
+    </form>
+    <form class="test-card" method="post" action="{{ url_for('start_test') }}">
+        <h2>Full Test</h2>
+        <p>27 questions · 47 minutes<br>A comprehensive practice set.</p>
+        <input type="hidden" name="format" value="full">
+        <button class="btn" type="submit">Start Full Test</button>
+    </form>
+</div>
+{% else %}
+<div class="login-prompt">
+    <h3>Login Required</h3>
+    <p>Create an account to access practice tests and track your progress. Attempted questions are saved to avoid repetition.</p>
+    <div class="login-prompt-buttons">
+        <a href="{{ url_for('login') }}" class="btn">Login</a>
+        <a href="{{ url_for('register') }}" class="btn">Sign Up</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
