@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Login - GRE Quantitative Practice{% endblock %}
+{% block title %}Profile - GRE Quantitative Practice{% endblock %}
 
 {% block extra_styles %}
 <style>
@@ -12,197 +12,260 @@
         font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
     }
     
-    .auth-container {
-        max-width: 450px;
-        margin: 60px auto;
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    .profile-header {
+        background: linear-gradient(135deg, #667292 0%, #8b95ab 100%);
+        color: white;
         padding: 40px;
-        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(102, 114, 146, 0.2);
     }
     
-    .auth-header {
-        text-align: center;
-        margin-bottom: 35px;
-    }
-    
-    .auth-header h2 {
+    .profile-header h2 {
         font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
-        font-size: 2.2em;
-        color: #4a5568;
+        font-size: 2.5em;
         margin-bottom: 10px;
         font-weight: 700;
     }
     
-    .auth-header p {
-        font-family: 'League Spartan', Arial, sans-serif !important;
+    .profile-header p {
+        font-size: 1.2em;
+        opacity: 0.95;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 25px;
+        margin-bottom: 40px;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        border: 1px solid #e2e8f0;
+        text-align: center;
+        transition: all 0.3s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .stat-value {
+        font-size: 2.5em;
+        font-weight: 700;
+        color: #4a5568;
+        margin-bottom: 8px;
+        font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
+    }
+    
+    .stat-label {
         color: #718096;
         font-size: 1.1em;
+        font-weight: 500;
     }
     
-    .form-group {
-        margin-bottom: 25px;
+    .progress-section {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        border: 1px solid #e2e8f0;
     }
     
-    .form-group label {
-        display: block;
-        margin-bottom: 8px;
+    .progress-section h3 {
+        font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
         color: #4a5568;
-        font-weight: 600;
-        font-size: 1.05em;
-    }
-    
-    .form-group input {
-        width: 100%;
-        padding: 14px;
-        border: 1.5px solid #e2e8f0;
-        border-radius: 10px;
-        font-size: 1.05em;
-        font-family: 'League Spartan', Arial, sans-serif !important;
-        transition: all 0.3s;
-    }
-    
-    .form-group input:focus {
-        outline: none;
-        border-color: #667292;
-        box-shadow: 0 0 0 3px rgba(102, 114, 146, 0.1);
-    }
-    
-    .btn-auth {
-        width: 100%;
-        padding: 16px;
-        background: linear-gradient(135deg, #667292 0%, #8b95ab 100%);
-        color: white;
-        border: none;
-        border-radius: 10px;
-        font-size: 1.15em;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s;
-        margin-top: 10px;
-        font-family: 'League Spartan', Arial, sans-serif !important;
-    }
-    
-    .btn-auth:hover {
-        background: linear-gradient(135deg, #8b95ab 0%, #667292 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(102, 114, 146, 0.25);
-    }
-    
-    .auth-divider {
-        text-align: center;
-        margin: 30px 0;
-        color: #a0aec0;
-        position: relative;
-    }
-    
-    .auth-divider::before,
-    .auth-divider::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        width: 42%;
-        height: 1px;
-        background: #e2e8f0;
-    }
-    
-    .auth-divider::before {
-        left: 0;
-    }
-    
-    .auth-divider::after {
-        right: 0;
-    }
-    
-    .auth-link {
-        text-align: center;
-        margin-top: 25px;
-        font-size: 1.05em;
-        color: #718096;
-    }
-    
-    .auth-link a {
-        color: #4a5568;
-        text-decoration: none;
-        font-weight: 600;
-        transition: color 0.3s;
-    }
-    
-    .auth-link a:hover {
-        color: #667292;
-        text-decoration: underline;
-    }
-    
-    .flash-messages {
         margin-bottom: 20px;
+        font-size: 1.8em;
     }
     
-    .flash-message {
-        padding: 14px 18px;
+    .progress-bar-container {
+        background: #e2e8f0;
         border-radius: 10px;
-        margin-bottom: 12px;
-        font-family: 'League Spartan', Arial, sans-serif !important;
+        height: 30px;
+        overflow: hidden;
+        margin: 15px 0;
+    }
+    
+    .progress-bar-fill {
+        background: linear-gradient(90deg, #667292 0%, #8b95ab 100%);
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        transition: width 0.5s ease;
+    }
+    
+    .history-table {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+    }
+    
+    .history-table th,
+    .history-table td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .history-table th {
+        background: #f8f9fb;
+        font-weight: 700;
+        color: #4a5568;
         font-size: 1.05em;
     }
     
-    .flash-error {
-        background: #fee;
-        color: #c53030;
-        border: 1px solid #fc8181;
+    .history-table td {
+        color: #718096;
+        font-size: 1.05em;
     }
     
-    .flash-warning {
-        background: #fff8e1;
-        color: #f57c00;
-        border: 1px solid #ffb74d;
+    .history-table tr:hover {
+        background: #f8f9fb;
     }
     
-    .flash-success {
+    .accuracy-badge {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.95em;
+    }
+    
+    .accuracy-high {
         background: #e8f5e9;
         color: #2e7d32;
-        border: 1px solid #66bb6a;
+    }
+    
+    .accuracy-medium {
+        background: #fff8e1;
+        color: #f57c00;
+    }
+    
+    .accuracy-low {
+        background: #fee;
+        color: #c53030;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+        justify-content: center;
+    }
+    
+    .no-data {
+        text-align: center;
+        padding: 40px;
+        color: #a0aec0;
+        font-size: 1.1em;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-header">
-        <h2>Welcome Back</h2>
-        <p>Login to continue your GRE practice</p>
+<div class="profile-header">
+    <h2>Your Profile</h2>
+    <p>{{ email }}</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ total_tests }}</div>
+        <div class="stat-label">Tests Completed</div>
     </div>
-    
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="flash-messages">
-                {% for category, message in messages %}
-                    <div class="flash-message flash-{{ category }}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
-    
-    <form method="POST" action="{{ url_for('login') }}">
-        <div class="form-group">
-            <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" placeholder="your@email.com" required autofocus>
-        </div>
-        
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" placeholder="Enter your password" required>
-        </div>
-        
-        <button type="submit" class="btn-auth">Login</button>
-    </form>
-    
-    <div class="auth-divider">or</div>
-    
-    <div class="auth-link">
-        Don't have an account? <a href="{{ url_for('register') }}">Sign up here</a>
+    <div class="stat-card">
+        <div class="stat-value">{{ avg_accuracy }}%</div>
+        <div class="stat-label">Average Accuracy</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ total_correct }}/{{ total_questions }}</div>
+        <div class="stat-label">Questions Correct</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ questions_attempted }}</div>
+        <div class="stat-label">Unique Questions Seen</div>
     </div>
 </div>
+
+<div class="progress-section">
+    <h3>Question Bank Progress</h3>
+    <p style="color: #718096; margin-bottom: 15px;">
+        You've attempted {{ questions_attempted }} out of {{ total_available }} available questions
+    </p>
+    <div class="progress-bar-container">
+        <div class="progress-bar-fill" style="width: {{ (questions_attempted / total_available * 100) if total_available > 0 else 0 }}%">
+            {{ ((questions_attempted / total_available * 100) if total_available > 0 else 0)|round(1) }}%
+        </div>
+    </div>
+    <p style="color: #a0aec0; margin-top: 10px; font-size: 0.95em;">
+        Questions reset automatically when you've seen them all
+    </p>
+</div>
+
+<div class="progress-section">
+    <h3>Recent Test History</h3>
+    {% if test_history|length > 0 %}
+    <table class="history-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Test Type</th>
+                <th>Score</th>
+                <th>Accuracy</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for test in test_history|reverse %}
+            <tr>
+                <td>{{ test.date[:10] }}</td>
+                <td style="text-transform: capitalize;">{{ test.format }}</td>
+                <td>{{ test.correct }}/{{ test.total }}</td>
+                <td>
+                    <span class="accuracy-badge {% if test.accuracy >= 80 %}accuracy-high{% elif test.accuracy >= 60 %}accuracy-medium{% else %}accuracy-low{% endif %}">
+                        {{ test.accuracy }}%
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="no-data">
+        <p>No test history yet. Start your first practice test to see your progress!</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="action-buttons">
+    <a href="{{ url_for('index') }}" class="btn">Take Another Test</a>
+    <button onclick="resetAllProgress()" class="btn btn-secondary">Reset Question Bank</button>
+    <a href="{{ url_for('logout') }}" class="btn btn-secondary">Logout</a>
+</div>
+
+<script>
+function resetAllProgress() {
+    if (confirm('Are you sure you want to reset your question bank? This will allow you to see all questions again, but your test history will be preserved.')) {
+        fetch('/reset_history', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Question bank has been reset!');
+                location.reload();
+            }
+        });
+    }
+}
+</script>
 {% endblock %}
