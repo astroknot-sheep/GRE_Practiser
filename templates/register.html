@@ -30,7 +30,7 @@
     .auth-header h2 {
         font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
         font-size: 2.2em;
-        color: #667292;
+        color: #4a5568;
         margin-bottom: 10px;
         font-weight: 700;
     }
@@ -66,8 +66,8 @@
     
     .form-group input:focus {
         outline: none;
-        border-color: #8b95ab;
-        box-shadow: 0 0 0 3px rgba(139, 149, 171, 0.1);
+        border-color: #667292;
+        box-shadow: 0 0 0 3px rgba(102, 114, 146, 0.1);
     }
     
     .form-group small {
@@ -80,7 +80,7 @@
     .btn-auth {
         width: 100%;
         padding: 16px;
-        background: linear-gradient(135deg, #8b95ab 0%, #667292 100%);
+        background: linear-gradient(135deg, #667292 0%, #8b95ab 100%);
         color: white;
         border: none;
         border-radius: 10px;
@@ -93,7 +93,7 @@
     }
     
     .btn-auth:hover {
-        background: linear-gradient(135deg, #667292 0%, #8b95ab 100%);
+        background: linear-gradient(135deg, #8b95ab 0%, #667292 100%);
         transform: translateY(-2px);
         box-shadow: 0 4px 15px rgba(102, 114, 146, 0.25);
     }
@@ -131,14 +131,14 @@
     }
     
     .auth-link a {
-        color: #667292;
+        color: #4a5568;
         text-decoration: none;
         font-weight: 600;
         transition: color 0.3s;
     }
     
     .auth-link a:hover {
-        color: #8b95ab;
+        color: #667292;
         text-decoration: underline;
     }
     
@@ -182,7 +182,7 @@
     
     .benefits-list h4 {
         font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
-        color: #667292;
+        color: #4a5568;
         margin-bottom: 15px;
         font-size: 1.2em;
     }
@@ -201,10 +201,10 @@
     }
     
     .benefits-list li:before {
-        content: "✓";
+        content: "•";
         position: absolute;
         left: 0;
-        color: #66bb6a;
+        color: #667292;
         font-weight: bold;
     }
 </style>
@@ -213,8 +213,8 @@
 {% block content %}
 <div class="auth-container">
     <div class="auth-header">
-        <h2>🚀 Create Your Account</h2>
-        <p>Join thousands preparing for GRE success</p>
+        <h2>Create Your Account</h2>
+        <p>Join to prepare for GRE success</p>
     </div>
     
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -251,12 +251,12 @@
     </form>
     
     <div class="benefits-list">
-        <h4>📝 Why Sign Up?</h4>
+        <h4>Benefits of Signing Up</h4>
         <ul>
             <li>Track your progress across sessions</li>
-            <li>Never see the same question twice</li>
-            <li>View detailed performance analytics</li>
-            <li>Resume tests where you left off</li>
+            <li>Avoid repeating questions</li>
+            <li>Access detailed performance analytics</li>
+            <li>Resume tests from where you left off</li>
         </ul>
     </div>
     
