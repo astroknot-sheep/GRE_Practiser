@@ -26,7 +26,7 @@
     }
     
     .user-nav a {
-        color: #667292;
+        color: #4a5568;
         text-decoration: none;
         font-weight: 600;
         padding: 10px 20px;
@@ -38,7 +38,7 @@
     }
     
     .user-nav a:hover {
-        background: linear-gradient(135deg, #8b95ab 0%, #667292 100%);
+        background: linear-gradient(135deg, #667292 0%, #8b95ab 100%);
         color: white;
         border-color: #667292;
     }
@@ -50,7 +50,7 @@
     }
     
     .home-hero {
-        background: linear-gradient(135deg, #f8f9fb 0%, #e8ecf1 100%);
+        background: white;
         color: #2d3748;
         border-radius: 20px;
         padding: 50px 32px 40px 32px;
@@ -67,7 +67,7 @@
         font-weight: 700;
         margin-bottom: 14px;
         letter-spacing: -0.5px;
-        color: #667292;
+        color: #4a5568;
     }
     
     .home-hero p {
@@ -105,14 +105,14 @@
     .test-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 8px 25px rgba(102, 114, 146, 0.15);
-        border-color: #8b95ab;
+        border-color: #667292;
     }
     
     .test-card h2 {
         font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
         font-size: 1.5em;
         font-weight: 700;
-        color: #667292;
+        color: #4a5568;
         margin-bottom: 12px;
         letter-spacing: -0.3px;
     }
@@ -133,7 +133,7 @@
         font-size: 1.1em;
         padding: 14px 0;
         margin-top: 10px;
-        background: linear-gradient(135deg, #8b95ab 0%, #667292 100%);
+        background: linear-gradient(135deg, #667292 0%, #8b95ab 100%);
         color: white;
         border: none;
         font-weight: 600;
@@ -143,19 +143,19 @@
     }
     
     .test-card .btn:hover {
-        background: linear-gradient(135deg, #667292 0%, #8b95ab 100%);
+        background: linear-gradient(135deg, #8b95ab 0%, #667292 100%);
         box-shadow: 0 4px 15px rgba(102, 114, 146, 0.25);
         transform: translateY(-2px);
     }
     
     .test-card .btn:focus, .test-card .btn:active {
-        outline: 2px solid #8b95ab;
+        outline: 2px solid #667292;
         outline-offset: 2px;
     }
     
     .login-prompt {
-        background: #fff8e1;
-        border: 1px solid #ffe0b2;
+        background: white;
+        border: 1px solid #d4dce6;
         border-radius: 12px;
         padding: 30px;
         text-align: center;
@@ -164,13 +164,13 @@
     }
     
     .login-prompt h3 {
-        color: #f57c00;
+        color: #4a5568;
         margin-bottom: 15px;
         font-size: 1.5em;
     }
     
     .login-prompt p {
-        color: #795548;
+        color: #718096;
         margin-bottom: 20px;
         font-size: 1.1em;
     }
@@ -236,35 +236,35 @@
 {% endwith %}
 
 <div class="home-hero">
-    <h1>🎓 GRE Quantitative Practice</h1>
-    <p>Sharpen your quantitative reasoning skills with realistic, adaptive GRE-style practice. Choose your test mode and track your progress over time.</p>
+    <h1>GRE Quantitative Practice</h1>
+    <p>Enhance your quantitative reasoning skills with realistic GRE-style practice questions. Select a test mode and monitor your progress.</p>
 </div>
 
 {% if logged_in %}
 <div class="test-options">
     <form class="test-card" method="post" action="{{ url_for('start_test') }}">
         <h2>Quick Practice</h2>
-        <p>12 questions · 18 minutes<br>Perfect for a fast, focused session.</p>
+        <p>12 questions · 18 minutes<br>Ideal for a focused session.</p>
         <input type="hidden" name="format" value="quick">
         <button class="btn" type="submit">Start Quick Practice</button>
     </form>
     <form class="test-card" method="post" action="{{ url_for('start_test') }}">
         <h2>Standard Practice</h2>
-        <p>15 questions · 23 minutes<br>Simulates a real GRE section.</p>
+        <p>15 questions · 23 minutes<br>Simulates a GRE section.</p>
         <input type="hidden" name="format" value="standard">
         <button class="btn" type="submit">Start Standard Practice</button>
     </form>
     <form class="test-card" method="post" action="{{ url_for('start_test') }}">
         <h2>Full Test</h2>
-        <p>27 questions · 47 minutes<br>Challenge yourself with a full-length set.</p>
+        <p>27 questions · 47 minutes<br>A comprehensive practice set.</p>
         <input type="hidden" name="format" value="full">
         <button class="btn" type="submit">Start Full Test</button>
     </form>
 </div>
 {% else %}
 <div class="login-prompt">
-    <h3>🔐 Login Required</h3>
-    <p>Create a free account to start practicing and track your progress across sessions. Your attempted questions will be saved so you won't see repeats!</p>
+    <h3>Login Required</h3>
+    <p>Create an account to access practice tests and track your progress. Attempted questions are saved to avoid repetition.</p>
     <div class="login-prompt-buttons">
         <a href="{{ url_for('login') }}" class="btn">Login</a>
         <a href="{{ url_for('register') }}" class="btn">Sign Up</a>
