@@ -1,13 +1,61 @@
-from flask import Flask, render_template, request, session, redirect, url_for, jsonify
+from flask import Flask, render_template, request, session, redirect, url_for, jsonify, flash
 import json
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import itertools
 import base64
+from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
+import sqlite3
+import secrets
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-change-this-in-production'
+app.secret_key = secrets.token_hex(32)  # Generate a secure secret key
+app.permanent_session_lifetime = timedelta(days=30)  # Sessions last 30 days
+
+# Database initialization
+def init_db():
+    conn = sqlite3.connect('gre_practice.db')
+    c = conn.cursor()
+    
+    # Create users table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    # Create user_progress table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS user_progress (
+            user_id INTEGER,
+            attempted_questions_bitmap TEXT,
+            test_history TEXT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            PRIMARY KEY (user_id)
+        )
+    ''')
+    
+    conn.commit()
+    conn.close()
+
+# Initialize database on startup
+init_db()
+
+# Login required decorator
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Please login to access this page', 'warning')
+            return redirect(url_for('login', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function
 
 # Load and normalize questions from JSON file
 def load_questions():
@@ -29,7 +77,7 @@ def load_questions():
                 if 'quantityB' in q:
                     q['quantity_b'] = q.pop('quantityB')
             
-            # Assign topic based on question content (you can refine this logic)
+            # Assign topic based on question content
             q['topic'] = assign_topic(q)
             
             # Normalize the correct answer format
@@ -104,17 +152,105 @@ GRE_DISTRIBUTION = {
     }
 }
 
-def get_attempted_questions_bitmap():
-    b64 = session.get('attempted_questions_bitmap', None)
-    if b64 is None:
-        return bytearray()
+# Database helper functions
+def get_user_by_email(email):
+    conn = sqlite3.connect('gre_practice.db')
+    c = conn.cursor()
+    c.execute('SELECT * FROM users WHERE email = ?', (email,))
+    user = c.fetchone()
+    conn.close()
+    return user
+
+def create_user(email, password):
+    conn = sqlite3.connect('gre_practice.db')
+    c = conn.cursor()
+    password_hash = generate_password_hash(password)
     try:
-        return bytearray(base64.b64decode(b64))
-    except Exception:
+        c.execute('INSERT INTO users (email, password_hash) VALUES (?, ?)', (email, password_hash))
+        conn.commit()
+        user_id = c.lastrowid
+        conn.close()
+        return user_id
+    except sqlite3.IntegrityError:
+        conn.close()
+        return None
+
+def load_user_progress(user_id):
+    conn = sqlite3.connect('gre_practice.db')
+    c = conn.cursor()
+    c.execute('SELECT attempted_questions_bitmap, test_history FROM user_progress WHERE user_id = ?', (user_id,))
+    progress = c.fetchone()
+    conn.close()
+    
+    if progress:
+        bitmap = progress[0] if progress[0] else ''
+        history = json.loads(progress[1]) if progress[1] else []
+        return bitmap, history
+    return '', []
+
+def save_user_progress(user_id, bitmap=None, history=None):
+    conn = sqlite3.connect('gre_practice.db')
+    c = conn.cursor()
+    
+    # Get existing progress
+    c.execute('SELECT attempted_questions_bitmap, test_history FROM user_progress WHERE user_id = ?', (user_id,))
+    existing = c.fetchone()
+    
+    if existing:
+        # Update existing progress
+        if bitmap is not None:
+            current_bitmap = bitmap
+        else:
+            current_bitmap = existing[0] if existing[0] else ''
+            
+        if history is not None:
+            current_history = json.dumps(history)
+        else:
+            current_history = existing[1] if existing[1] else '[]'
+            
+        c.execute('''
+            UPDATE user_progress 
+            SET attempted_questions_bitmap = ?, test_history = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE user_id = ?
+        ''', (current_bitmap, current_history, user_id))
+    else:
+        # Create new progress entry
+        bitmap = bitmap if bitmap is not None else ''
+        history_json = json.dumps(history) if history is not None else '[]'
+        c.execute('''
+            INSERT INTO user_progress (user_id, attempted_questions_bitmap, test_history)
+            VALUES (?, ?, ?)
+        ''', (user_id, bitmap, history_json))
+    
+    conn.commit()
+    conn.close()
+
+def get_attempted_questions_bitmap():
+    if 'user_id' not in session:
+        b64 = session.get('attempted_questions_bitmap', None)
+        if b64 is None:
+            return bytearray()
+        try:
+            return bytearray(base64.b64decode(b64))
+        except Exception:
+            return bytearray()
+    else:
+        # Load from database
+        bitmap_str, _ = load_user_progress(session['user_id'])
+        if bitmap_str:
+            try:
+                return bytearray(base64.b64decode(bitmap_str))
+            except:
+                return bytearray()
         return bytearray()
 
 def set_attempted_questions_bitmap(bitmap):
-    session['attempted_questions_bitmap'] = base64.b64encode(bytes(bitmap)).decode('ascii')
+    bitmap_str = base64.b64encode(bytes(bitmap)).decode('ascii')
+    if 'user_id' in session:
+        # Save to database
+        save_user_progress(session['user_id'], bitmap=bitmap_str)
+    else:
+        session['attempted_questions_bitmap'] = bitmap_str
 
 def mark_question_attempted_bitmap(question_id):
     idx = question_id - 1
@@ -153,7 +289,7 @@ def select_questions(num_questions):
     
     if len(available_questions) < num_questions:
         # Reset attempted questions if not enough available
-        session['attempted_questions_bitmap'] = base64.b64encode(b'').decode('ascii')
+        set_attempted_questions_bitmap(bytearray())
         available_questions = all_questions
     
     # Select questions based on type distribution
@@ -181,9 +317,75 @@ def select_questions(num_questions):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', logged_in='user_id' in session)
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip().lower()
+        password = request.form.get('password', '')
+        confirm_password = request.form.get('confirm_password', '')
+        
+        # Validation
+        if not email or '@' not in email:
+            flash('Please enter a valid email address', 'error')
+            return redirect(url_for('register'))
+        
+        if len(password) < 6:
+            flash('Password must be at least 6 characters long', 'error')
+            return redirect(url_for('register'))
+        
+        if password != confirm_password:
+            flash('Passwords do not match', 'error')
+            return redirect(url_for('register'))
+        
+        # Create user
+        user_id = create_user(email, password)
+        if user_id:
+            session.permanent = True
+            session['user_id'] = user_id
+            session['user_email'] = email
+            flash('Registration successful! Welcome to GRE Practice.', 'success')
+            return redirect(url_for('index'))
+        else:
+            flash('An account with this email already exists', 'error')
+            return redirect(url_for('register'))
+    
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip().lower()
+        password = request.form.get('password', '')
+        
+        user = get_user_by_email(email)
+        if user and check_password_hash(user[2], password):  # user[2] is password_hash
+            session.permanent = True
+            session['user_id'] = user[0]  # user[0] is id
+            session['user_email'] = user[1]  # user[1] is email
+            
+            # Load user's test history into session
+            _, history = load_user_progress(user[0])
+            session['test_history'] = history
+            
+            flash('Welcome back!', 'success')
+            next_page = request.args.get('next')
+            return redirect(next_page or url_for('index'))
+        else:
+            flash('Invalid email or password', 'error')
+            return redirect(url_for('login'))
+    
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('You have been logged out', 'success')
+    return redirect(url_for('index'))
 
 @app.route('/start_test', methods=['POST'])
+@login_required
 def start_test():
     # Clear any existing test data
     session.pop('current_test', None)
@@ -220,6 +422,7 @@ def start_test():
     return redirect(url_for('test'))
 
 @app.route('/test', methods=['GET', 'POST'])
+@login_required
 def test():
     if 'current_test' not in session:
         return redirect(url_for('index'))
@@ -254,6 +457,7 @@ def test():
         time_limit=test_data['time_limit'])
 
 @app.route('/submit_answer', methods=['POST'])
+@login_required
 def submit_answer():
     if 'current_test' not in session:
         return jsonify({'error': 'No active test'}), 400
@@ -275,6 +479,7 @@ def submit_answer():
     return jsonify({'success': True})
 
 @app.route('/submit_test', methods=['POST'])
+@login_required
 def submit_test():
     if 'current_test' not in session:
         return redirect(url_for('index'))
@@ -325,6 +530,10 @@ def submit_test():
     
     # Keep only last 10 tests
     session['test_history'] = session['test_history'][-10:]
+    
+    # Save to database
+    if 'user_id' in session:
+        save_user_progress(session['user_id'], history=session['test_history'])
     
     # Store results for display
     session['last_results'] = {
@@ -437,6 +646,7 @@ def format_user_answer(question, user_answer):
     return str(user_answer)
 
 @app.route('/results')
+@login_required
 def results():
     if 'last_results' not in session:
         return redirect(url_for('index'))
@@ -446,10 +656,41 @@ def results():
     return render_template('results.html', results=results, history=history)
 
 @app.route('/reset_history', methods=['POST'])
+@login_required
 def reset_history():
-    session['attempted_questions_bitmap'] = base64.b64encode(b'').decode('ascii')
+    set_attempted_questions_bitmap(bytearray())
     session.modified = True
     return jsonify({'success': True})
+
+@app.route('/profile')
+@login_required
+def profile():
+    _, history = load_user_progress(session['user_id'])
+    total_tests = len(history)
+    
+    if total_tests > 0:
+        avg_accuracy = sum(h['accuracy'] for h in history) / total_tests
+        total_questions = sum(h['total'] for h in history)
+        total_correct = sum(h['correct'] for h in history)
+    else:
+        avg_accuracy = 0
+        total_questions = 0
+        total_correct = 0
+    
+    # Count attempted questions
+    attempted = get_attempted_questions()
+    all_questions = load_questions()
+    
+    return render_template('profile.html',
+        email=session['user_email'],
+        total_tests=total_tests,
+        avg_accuracy=round(avg_accuracy, 1),
+        total_questions=total_questions,
+        total_correct=total_correct,
+        questions_attempted=len(attempted),
+        total_available=len(all_questions),
+        test_history=history[-10:] if history else []
+    )
 
 if __name__ == '__main__':
     app.run(debug=True)
