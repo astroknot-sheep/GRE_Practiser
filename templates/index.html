@@ -16,6 +16,39 @@
         background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%) !important;
     }
     
+    .user-nav {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+    
+    .user-nav a {
+        color: #667292;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 10px 20px;
+        border-radius: 8px;
+        transition: all 0.3s;
+        background: white;
+        border: 1px solid #e2e8f0;
+        font-size: 1.05em;
+    }
+    
+    .user-nav a:hover {
+        background: linear-gradient(135deg, #8b95ab 0%, #667292 100%);
+        color: white;
+        border-color: #667292;
+    }
+    
+    .user-email {
+        color: #4a5568;
+        font-weight: 500;
+        margin-right: 10px;
+    }
+    
     .home-hero {
         background: linear-gradient(135deg, #f8f9fb 0%, #e8ecf1 100%);
         color: #2d3748;
@@ -25,6 +58,7 @@
         margin-bottom: 48px;
         box-shadow: 0 2px 15px rgba(0,0,0,0.06);
         border: 1px solid #d4dce6;
+        position: relative;
     }
     
     .home-hero h1 {
@@ -119,18 +153,94 @@
         outline-offset: 2px;
     }
     
+    .login-prompt {
+        background: #fff8e1;
+        border: 1px solid #ffe0b2;
+        border-radius: 12px;
+        padding: 30px;
+        text-align: center;
+        margin: 30px auto;
+        max-width: 600px;
+    }
+    
+    .login-prompt h3 {
+        color: #f57c00;
+        margin-bottom: 15px;
+        font-size: 1.5em;
+    }
+    
+    .login-prompt p {
+        color: #795548;
+        margin-bottom: 20px;
+        font-size: 1.1em;
+    }
+    
+    .login-prompt-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+    }
+    
+    .flash-messages {
+        max-width: 800px;
+        margin: 20px auto;
+    }
+    
+    .flash-message {
+        padding: 14px 18px;
+        border-radius: 10px;
+        margin-bottom: 12px;
+        font-family: 'League Spartan', Arial, sans-serif !important;
+        font-size: 1.05em;
+        text-align: center;
+    }
+    
+    .flash-success {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid #66bb6a;
+    }
+    
     @media (max-width: 900px) {
         .test-options { flex-direction: column; gap: 24px; }
         .test-card { max-width: 100%; }
+        .user-nav { position: static; margin-bottom: 20px; justify-content: center; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
+{% if logged_in %}
+<div class="user-nav">
+    <span class="user-email">{{ session['user_email'] }}</span>
+    <a href="{{ url_for('profile') }}">Profile</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+</div>
+{% else %}
+<div class="user-nav">
+    <a href="{{ url_for('login') }}">Login</a>
+    <a href="{{ url_for('register') }}">Sign Up</a>
+</div>
+{% endif %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+                <div class="flash-message flash-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
 <div class="home-hero">
     <h1>🎓 GRE Quantitative Practice</h1>
     <p>Sharpen your quantitative reasoning skills with realistic, adaptive GRE-style practice. Choose your test mode and track your progress over time.</p>
 </div>
+
+{% if logged_in %}
 <div class="test-options">
     <form class="test-card" method="post" action="{{ url_for('start_test') }}">
         <h2>Quick Practice</h2>
@@ -151,4 +261,14 @@
         <button class="btn" type="submit">Start Full Test</button>
     </form>
 </div>
+{% else %}
+<div class="login-prompt">
+    <h3>🔐 Login Required</h3>
+    <p>Create a free account to start practicing and track your progress across sessions. Your attempted questions will be saved so you won't see repeats!</p>
+    <div class="login-prompt-buttons">
+        <a href="{{ url_for('login') }}" class="btn">Login</a>
+        <a href="{{ url_for('register') }}" class="btn">Sign Up</a>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
