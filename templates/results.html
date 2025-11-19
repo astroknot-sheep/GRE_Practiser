@@ -1,316 +1,207 @@
 {% extends "base.html" %}
-
-{% block title %}Results - GRE Quantitative Practice{% endblock %}
+{% block title %}Test Results - GRE Practiser{% endblock %}
 
 {% block extra_styles %}
 <style>
-    * {
-        font-family: 'League Spartan', Arial, sans-serif !important;
-    }
-    
-    h1, h2, h3, h4, h5, h6 {
-        font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
-    }
-    
-    .score-banner {
-        background: linear-gradient(135deg, #667292 0%, #8b95ab 100%);
-        color: white;
-        padding: 40px;
-        border-radius: 12px;
+    .results-header {
         text-align: center;
-        margin-bottom: 40px;
-        box-shadow: 0 4px 15px rgba(102, 114, 146, 0.2);
+        margin-bottom: 4rem;
+        padding: 3rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
     }
-    
-    .score-banner h2 {
-        font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
-        font-size: 3em;
-        margin-bottom: 10px;
+
+    .score-display {
+        font-family: var(--font-serif);
+        font-size: 4rem;
         font-weight: 700;
+        line-height: 1;
+        margin: 1rem 0;
+        color: var(--text-primary);
     }
-    
-    .score-banner p {
-        opacity: 0.95;
+
+    .score-label {
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        font-weight: 600;
     }
-    
-    .score-details {
-        font-family: 'League Spartan', Arial, sans-serif !important;
-        display: flex;
-        justify-content: center;
-        gap: 40px;
-        margin-top: 20px;
-        font-size: 1.2em;
+
+    .review-section {
+        margin-top: 4rem;
     }
-    
-    .chart-container {
-        background: white;
-        padding: 30px;
-        border-radius: 12px;
-        margin-bottom: 40px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    }
-    
-    .chart-container h3 {
-        font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
-        color: #4a5568;
-        margin-bottom: 20px;
-        text-align: center;
-    }
-    
-    #historyChart {
-        width: 100%;
-        height: 300px;
-    }
-    
-    .question-review {
-        margin-top: 40px;
-    }
-    
-    .question-review h3 {
-        font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
-        color: #4a5568;
-    }
-    
+
     .review-card {
-        font-family: 'League Spartan', Arial, sans-serif !important;
-        background: white;
-        border-radius: 12px;
-        padding: 25px;
-        margin-bottom: 20px;
-        border-left: 4px solid #e2e8f0;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        margin-bottom: 1.5rem;
     }
-    
+
     .review-card.correct {
-        border-left-color: #66bb6a;
-        background: #f1f8f4;
+        border-left: 4px solid #166534;
     }
-    
+
     .review-card.incorrect {
-        border-left-color: #ef5350;
-        background: #fef5f5;
+        border-left: 4px solid #991B1B;
     }
-    
-    .review-header {
+
+    .review-meta {
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
     }
-    
-    .review-status {
-        font-weight: 600;
-        padding: 6px 16px;
-        border-radius: 20px;
-        font-size: 0.9em;
-    }
-    
-    .review-status.correct {
-        background: #66bb6a;
-        color: white;
-    }
-    
-    .review-status.incorrect {
-        background: #ef5350;
-        color: white;
-    }
-    
+
     .review-question {
-        font-size: 1.1em;
-        margin-bottom: 15px;
-        color: #2d3748;
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+        color: var(--text-primary);
+    }
+
+    .answer-comparison {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        background: var(--bg-subtle);
+        padding: 1.5rem;
+        border-radius: var(--radius-md);
+        font-size: 0.95rem;
+    }
+
+    .explanation {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-light);
+        color: var(--text-secondary);
+        font-size: 0.95rem;
         line-height: 1.6;
     }
-    
-    .review-answer {
-        padding: 12px 16px;
-        border-radius: 8px;
-        margin: 8px 0;
-    }
-    
-    .your-answer {
-        background: #f0f4f8;
-        color: #4a5568;
-        border-left: 3px solid #8b95ab;
-    }
-    
-    .correct-answer {
-        background: #f1f8f4;
-        color: #2e7d32;
-        border-left: 3px solid #66bb6a;
-    }
-    
-    .actions {
+
+    .chart-container {
+        height: 200px;
         display: flex;
-        gap: 15px;
-        justify-content: center;
-        margin-top: 30px;
+        align-items: flex-end;
+        gap: 4px;
+        margin-top: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-light);
     }
-    
-    .no-history {
-        font-family: 'League Spartan', Arial, sans-serif !important;
-        text-align: center;
-        padding: 40px;
-        color: #718096;
+
+    .chart-bar {
+        flex: 1;
+        background: var(--text-tertiary);
+        border-radius: 2px 2px 0 0;
+        transition: height 0.5s ease;
+        position: relative;
+    }
+
+    .chart-bar:hover {
+        background: var(--text-primary);
+    }
+
+    .chart-bar[data-current="true"] {
+        background: var(--brand-gold);
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="score-banner">
-    <h2>{{ results.accuracy }}%</h2>
-    <p style="font-size: 1.3em;">Accuracy</p>
-    <div class="score-details">
-        <div>Correct: {{ results.correct }}</div>
-        <div>Incorrect: {{ results.total - results.correct }}</div>
-        <div>Total: {{ results.total }}</div>
+<div class="container" style="max-width: 800px;">
+    <div class="results-header">
+        <div class="score-label">Accuracy</div>
+        <div class="score-display">{{ "%.0f"|format(results.accuracy) }}%</div>
+        <p class="text-muted">
+            You answered {{ results.correct }} out of {{ results.total }} questions correctly.
+        </p>
+
+        <div class="flex justify-center gap-4 mt-8">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">Take Another Test</a>
+            <a href="{{ url_for('profile') }}" class="btn btn-secondary">View Profile</a>
+        </div>
     </div>
-</div>
 
-{% if history|length > 0 %}
-<div class="chart-container">
-    <h3>Performance History (Last 10 Tests)</h3>
-    <svg width="100%" height="120" id="simpleHistoryChart"></svg>
-</div>
-{% else %}
-<div class="no-history">
-    <p>This is your first test. Continue practicing to track your progress.</p>
-</div>
-{% endif %}
-
-<div class="question-review">
-    <h3 style="color: #4a5568; margin-bottom: 20px;">Detailed Review</h3>
-    
-    {% for detail in results.details %}
-    <div class="review-card {% if detail.correct %}correct{% else %}incorrect{% endif %}">
-        <div class="review-header">
-            <span style="font-weight: 600; color: #4a5568;">
-                Question {{ loop.index }}
-            </span>
-            <span class="review-status {% if detail.correct %}correct{% else %}incorrect{% endif %}">
-                {% if detail.correct %}Correct{% else %}Incorrect{% endif %}
-            </span>
-        </div>
-        
-        <div class="review-question">
-            {{ detail.question.question }}
-        </div>
-        
-        {% if detail.question.type == 'qc' %}
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0;">
-            <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                <strong>Quantity A:</strong> {{ detail.question.quantity_a }}
+    {% if history %}
+    <div class="mb-8">
+        <h3 class="mb-4">Performance Trend</h3>
+        <div class="chart-container">
+            {% for entry in history[-20:] %}
+            <div class="chart-bar" style="height: {{ entry.accuracy }}%;" data-current="{{ loop.last }}"
+                title="Date: {{ entry.date }} | Score: {{ entry.accuracy }}%">
             </div>
-            <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                <strong>Quantity B:</strong> {{ detail.question.quantity_b }}
-            </div>
+            {% endfor %}
         </div>
-        {% endif %}
-        
-        <div class="review-answer your-answer">
-            <strong>Your Answer:</strong> 
-            {% set user_ans = detail.user_answer %}
-            {% if user_ans %}
-                {% if detail.question.type == 'ma' %}
-                    {{ user_ans|join(', ') if user_ans is sequence else user_ans }}
-                {% elif detail.question.type == 'qc' %}
-                    {% set QC_OPTIONS = ["Quantity A is greater", "Quantity B is greater", "The two quantities are equal", "The relationship cannot be determined from the information given"] %}
-                    {{ QC_OPTIONS[user_ans|int] if user_ans is number and 0 <= user_ans|int < QC_OPTIONS|length else user_ans }}
-                {% else %}
-                    {{ user_ans }}
-                {% endif %}
-            {% else %}
-                <em>Not answered</em>
-            {% endif %}
-        </div>
-        
-        {% if not detail.correct %}
-        <div class="review-answer correct-answer">
-            <strong>Correct Answer:</strong> 
-            {% set q = detail.question %}
-            {% set correct = q.correct %}
-            {% if q.type == 'mc' %}
-                {{ q.options[correct] if correct is number and 0 <= correct < q.options|length else 'Error' }}
-            {% elif q.type == 'ma' %}
-                {{ [q.options[i] for i in (correct if correct is sequence else [correct]) if 0 <= i < q.options|length] | join(', ') }}
-            {% elif q.type == 'qc' %}
-                {% set QC_OPTIONS = ["Quantity A is greater", "Quantity B is greater", "The two quantities are equal", "The relationship cannot be determined from the information given"] %}
-                {{ QC_OPTIONS[correct] if correct is number and 0 <= correct < QC_OPTIONS|length else 'Error' }}
-            {% elif q.type == 'numeric' %}
-                {{ correct }}
-            {% else %}
-                {{ correct }}
-            {% endif %}
-        </div>
-        {% endif %}
-        
-        {% if detail.question.explanation %}
-        <div style="margin-top: 15px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
-            <strong>Explanation:</strong><br>
-            {{ detail.question.explanation }}
-        </div>
-        {% endif %}
     </div>
-    {% endfor %}
-</div>
-
-<div class="actions">
-    <a href="/" class="btn">Take Another Test</a>
-    <button onclick="resetHistory()" class="btn btn-secondary">Reset Question History</button>
-</div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    {% if history|length > 0 %}
-    // Simple SVG line chart for accuracy history
-    const historyData = {{ history|tojson }};
-    const svg = document.getElementById('simpleHistoryChart');
-    const width = svg.clientWidth || 600;
-    const height = svg.clientHeight || 120;
-    const margin = 30;
-    const n = historyData.length;
-    const maxY = 100;
-    // X spacing
-    const xStep = (width - 2 * margin) / Math.max(n - 1, 1);
-    // Y scale
-    function yScale(val) {
-        return height - margin - (val / maxY) * (height - 2 * margin);
-    }
-    // Draw axes
-    svg.innerHTML = `<line x1="${margin}" y1="${height-margin}" x2="${width-margin}" y2="${height-margin}" stroke="#d4dce6" stroke-width="1" />
-                     <line x1="${margin}" y1="${margin}" x2="${margin}" y2="${height-margin}" stroke="#d4dce6" stroke-width="1" />`;
-    // Draw points and lines
-    let points = historyData.map((item, i) => {
-        const x = margin + i * xStep;
-        const y = yScale(item.accuracy);
-        return {x, y, acc: item.accuracy};
-    });
-    // Draw lines
-    for (let i = 1; i < points.length; i++) {
-        svg.innerHTML += `<line x1="${points[i-1].x}" y1="${points[i-1].y}" x2="${points[i].x}" y2="${points[i].y}" stroke="#8b95ab" stroke-width="2.5" />`;
-    }
-    // Draw points
-    for (let pt of points) {
-        svg.innerHTML += `<circle cx="${pt.x}" cy="${pt.y}" r="5" fill="#667292" />`;
-        svg.innerHTML += `<text x="${pt.x}" y="${pt.y - 10}" font-size="12" text-anchor="middle" fill="#4a5568" font-weight="600">${pt.acc}%</text>`;
-    }
     {% endif %}
-    
-    function resetHistory() {
-        if (confirm('Are you sure you want to reset your question history? This will allow you to see all questions again.')) {
-            fetch('/reset_history', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'}
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Question history has been reset!');
-                }
-            });
-        }
-    }
-</script>
+
+    <div class="review-section">
+        <h3 class="mb-4">Detailed Review</h3>
+        {% for detail in results.details %}
+        <div class="review-card {{ 'correct' if detail.correct else 'incorrect' }}">
+            <div class="review-meta">
+                <span class="font-bold">Question {{ loop.index }}</span>
+                <span>{{ detail.question.type|upper }} • {{ detail.question.difficulty }}</span>
+            </div>
+
+            <div class="review-question">{{ detail.question.question }}</div>
+
+            {% if detail.question.type == 'qc' %}
+            <div class="grid grid-cols-2 gap-4 mb-4 p-4 bg-gray-50 rounded">
+                <div><strong>Qty A:</strong> {{ detail.question.quantity_a }}</div>
+                <div><strong>Qty B:</strong> {{ detail.question.quantity_b }}</div>
+            </div>
+            {% endif %}
+
+            <div class="answer-comparison">
+                <div>
+                    <div class="text-sm text-muted mb-1">Your Answer</div>
+                    <div class="{{ 'text-green-700' if detail.correct else 'text-red-700' }} font-medium">
+                        {% if detail.user_answer %}
+                        {% if detail.question.type == 'ma' and detail.user_answer is sequence %}
+                        {{ detail.user_answer|join(', ') }}
+                        {% else %}
+                        {{ detail.user_answer }}
+                        {% endif %}
+                        {% else %}
+                        <span class="text-muted italic">Not answered</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div>
+                    <div class="text-sm text-muted mb-1">Correct Answer</div>
+                    <div class="font-medium">
+                        {% if detail.question.type == 'mc' %}
+                        {{ detail.question.options[detail.correct_answer] }}
+                        {% elif detail.question.type == 'qc' %}
+                        {% set qc_opts = ["Quantity A is greater", "Quantity B is greater", "The two quantities are
+                        equal", "The relationship cannot be determined"] %}
+                        {{ qc_opts[detail.correct_answer] }}
+                        {% elif detail.question.type == 'ma' %}
+                        {% set correct_indices = detail.correct_answer if detail.correct_answer is sequence else
+                        [detail.correct_answer] %}
+                        {% set correct_texts = [] %}
+                        {% for idx in correct_indices %}
+                        {% set _ = correct_texts.append(detail.question.options[idx]) %}
+                        {% endfor %}
+                        {{ correct_texts|join(', ') }}
+                        {% else %}
+                        {{ detail.correct_answer }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% if detail.question.explanation %}
+            <div class="explanation">
+                <strong>Explanation:</strong> {{ detail.question.explanation }}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
 {% endblock %}

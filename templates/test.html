@@ -1,334 +1,267 @@
 {% extends "base.html" %}
-
-{% block title %}Test in Progress - GRE Quantitative Practice{% endblock %}
+{% block title %}Test in Progress - GRE Practiser{% endblock %}
 
 {% block extra_styles %}
 <style>
-    * {
-        font-family: 'League Spartan', Arial, sans-serif !important;
+    .test-container {
+        max-width: 800px;
+        margin: 0 auto;
     }
-    
-    h1, h2, h3, h4, h5, h6 {
-        font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
-    }
-    
-    .timer-section {
-        background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
-        border: 1px solid #d4dce6;
-        border-radius: 12px;
-        padding: 20px;
-        text-align: center;
-        margin-bottom: 30px;
+
+    .timer-bar {
         position: sticky;
-        top: 20px;
-        z-index: 100;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    }
-    
-    .timer {
-        font-size: 2.5em;
-        font-weight: bold;
-        color: #4a5568;
-        font-family: 'Courier New', monospace;
-    }
-    
-    .timer.warning {
-        color: #ef5350;
-        animation: pulse 1s infinite;
-    }
-    
-    @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.8; }
-    }
-    
-    .progress-bar {
-        background: #e2e8f0;
-        height: 8px;
-        border-radius: 4px;
-        margin-top: 15px;
-        overflow: hidden;
-    }
-    
-    .progress-fill {
-        background: linear-gradient(90deg, #667292 0%, #8b95ab 100%);
-        height: 100%;
-        transition: width 0.3s;
-    }
-    
-    .question-card {
-        background: white;
-        border-radius: 12px;
-        padding: 30px;
-        margin-bottom: 30px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    
-    .question-header {
+        top: 80px;
+        /* Below header */
+        background: var(--bg-surface);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-md);
+        padding: 1rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 20px;
-        padding-bottom: 15px;
-        border-bottom: 1px solid #e2e8f0;
+        margin-bottom: 2rem;
+        z-index: 40;
+        box-shadow: var(--shadow-sm);
     }
-    
-    .question-number {
-        font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
-        font-size: 1.2em;
-        font-weight: 700;
-        color: #4a5568;
+
+    .timer-display {
+        font-family: var(--font-sans);
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+        font-size: 1.25rem;
+        color: var(--text-primary);
     }
-    
+
+    .timer-display.warning {
+        color: #DC2626;
+        /* Red 600 */
+        animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+        50% {
+            opacity: 0.5;
+        }
+    }
+
+    .question-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: 3rem;
+        box-shadow: var(--shadow-sm);
+    }
+
     .question-meta {
         display: flex;
-        gap: 12px;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-light);
     }
-    
+
+    .question-number {
+        font-family: var(--font-serif);
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-secondary);
+    }
+
+    .badges {
+        display: flex;
+        gap: 0.5rem;
+    }
+
     .badge {
-        font-family: 'League Spartan', Arial, sans-serif !important;
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-size: 0.85em;
+        font-size: 0.75rem;
         font-weight: 600;
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+        background: var(--bg-subtle);
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
-    
-    .badge-type {
-        background: #f0f4f8;
-        color: #4a5568;
-    }
-    
-    .badge-topic {
-        background: #e8ecf1;
-        color: #667292;
-    }
-    
-    .badge-difficulty {
-        background: #f0f4f8;
-        color: #4a5568;
-    }
-    
+
     .question-text {
-        font-family: 'League Spartan', Arial, sans-serif !important;
-        font-size: 1.15em;
-        line-height: 1.7;
-        color: #2d3748;
-        margin-bottom: 25px;
+        font-size: 1.15rem;
+        line-height: 1.8;
+        margin-bottom: 2.5rem;
+        color: var(--text-primary);
     }
-    
-    .options {
+
+    .options-grid {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 1rem;
     }
-    
-    .option {
-        font-family: 'League Spartan', Arial, sans-serif !important;
+
+    .option-label {
         display: flex;
         align-items: center;
-        padding: 15px 20px;
-        background: white;
-        border: 1.5px solid #e2e8f0;
-        border-radius: 10px;
+        padding: 1.25rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-md);
         cursor: pointer;
         transition: all 0.2s ease;
     }
-    
-    .option:hover {
-        border-color: #667292;
-        background: #f8f9fb;
+
+    .option-label:hover {
+        background-color: var(--bg-subtle);
+        border-color: var(--text-tertiary);
     }
-    
-    .option input[type="radio"],
-    .option input[type="checkbox"] {
-        margin-right: 15px;
-        width: 20px;
-        height: 20px;
-        cursor: pointer;
-        accent-color: #667292;
+
+    .option-label.selected {
+        background-color: #FFF7ED;
+        /* Orange 50 */
+        border-color: var(--brand-gold);
+        box-shadow: 0 0 0 1px var(--brand-gold);
     }
-    
-    .option.selected {
-        background: #f0f4f8;
-        border-color: #667292;
-        font-weight: 600;
+
+    .option-input {
+        margin-right: 1rem;
+        width: 1.25rem;
+        height: 1.25rem;
+        accent-color: var(--brand-gold);
     }
-    
-    .numeric-input {
-        font-family: 'League Spartan', Arial, sans-serif !important;
-        width: 100%;
-        max-width: 300px;
-        padding: 15px;
-        font-size: 1.1em;
-        border: 1.5px solid #e2e8f0;
-        border-radius: 10px;
-        transition: border-color 0.2s;
-        background: white;
-    }
-    
-    .numeric-input:focus {
-        outline: none;
-        border-color: #667292;
-        box-shadow: 0 0 0 3px rgba(102, 114, 146, 0.1);
-    }
-    
-    .qc-quantities {
+
+    .qc-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        margin-bottom: 25px;
+        gap: 2rem;
+        margin-bottom: 2rem;
+        background: var(--bg-subtle);
+        padding: 2rem;
+        border-radius: var(--radius-md);
     }
-    
-    .quantity {
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        border: 1.5px solid #e2e8f0;
+
+    .qc-col {
         text-align: center;
     }
-    
-    .quantity-label {
-        font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
+
+    .qc-label {
         font-weight: 700;
-        color: #4a5568;
-        margin-bottom: 10px;
-        font-size: 1.1em;
+        margin-bottom: 1rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        font-size: 0.9rem;
     }
-    
-    .quantity-value {
-        font-family: 'League Spartan', Arial, sans-serif !important;
-        font-size: 1.2em;
-        color: #2d3748;
+
+    .qc-value {
+        font-size: 1.25rem;
+        font-family: var(--font-serif);
     }
-    
-    .submit-section {
-        text-align: center;
-        margin-top: 40px;
-        padding: 30px;
-        background: white;
-        border-radius: 12px;
-        border: 1px solid #e2e8f0;
-    }
-    
-    .submit-section h3 {
-        font-family: 'Intro Rust', 'League Spartan', Arial, sans-serif !important;
-        color: #2d3748;
-        margin-bottom: 20px;
+
+    .nav-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border-light);
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="timer-section">
-    <div style="font-size: 1.2em; margin-bottom: 10px; color: #4a5568; font-weight: 600;">Time Remaining</div>
-    <div class="timer" id="timer">{{ time_limit }}:00</div>
-    <div class="progress-bar">
-        <div class="progress-fill" id="progress"></div>
+<div class="test-container">
+    <div class="timer-bar">
+        <span class="text-sm text-muted font-medium">Time Remaining</span>
+        <div class="timer-display" id="timer">{{ time_limit }}:00</div>
     </div>
-</div>
 
-<form id="test-form" action="/submit_test" method="POST">
-    <div class="question-card">
-        <div class="question-header">
-            <div class="question-number">Question {{ q_idx + 1 }} of {{ total_questions }}</div>
+    <form id="test-form" action="/submit_test" method="POST">
+        <div class="question-card">
             <div class="question-meta">
-                <span class="badge badge-type">{{ question.type|upper }}</span>
-                <span class="badge badge-topic">{{ question.topic }}</span>
-                <span class="badge badge-difficulty">{{ question.difficulty }}</span>
+                <span class="question-number">Question {{ q_idx + 1 }} <span class="text-muted"
+                        style="font-weight: 400; font-size: 1rem;">of {{ total_questions }}</span></span>
+                <div class="badges">
+                    <span class="badge">{{ question.type|upper }}</span>
+                    <span class="badge">{{ question.difficulty }}</span>
+                </div>
             </div>
-        </div>
-        <div class="question-text">{{ question.question }}</div>
-        
-        {% if question.type == 'qc' %}
-        <div class="qc-quantities">
-            <div class="quantity">
-                <div class="quantity-label">Quantity A</div>
-                <div class="quantity-value">{{ question.quantity_a }}</div>
+
+            <div class="question-text">{{ question.question }}</div>
+
+            {% if question.type == 'qc' %}
+            <div class="qc-grid">
+                <div class="qc-col">
+                    <div class="qc-label">Quantity A</div>
+                    <div class="qc-value">{{ question.quantity_a }}</div>
+                </div>
+                <div class="qc-col">
+                    <div class="qc-label">Quantity B</div>
+                    <div class="qc-value">{{ question.quantity_b }}</div>
+                </div>
             </div>
-            <div class="quantity">
-                <div class="quantity-label">Quantity B</div>
-                <div class="quantity-value">{{ question.quantity_b }}</div>
+            <div class="options-grid">
+                {% set qc_options = ['Quantity A is greater', 'Quantity B is greater', 'The two quantities are equal',
+                'The relationship cannot be determined from the information given'] %}
+                {% for option in qc_options %}
+                <label class="option-label {% if answer == option %}selected{% endif %}">
+                    <input type="radio" class="option-input" name="q{{ question.id }}" value="{{ option }}" {% if
+                        answer==option %}checked{% endif %}
+                        onchange="saveAnswer('{{ question.id }}', this.value); document.querySelectorAll('.option-label').forEach(o => o.classList.remove('selected')); this.parentElement.classList.add('selected');">
+                    <span>{{ option }}</span>
+                </label>
+                {% endfor %}
             </div>
-        </div>
-        <div class="options">
-            {% set qc_options = [
-                'Quantity A is greater',
-                'Quantity B is greater',
-                'The two quantities are equal',
-                'The relationship cannot be determined from the information given'
-            ] %}
-            {% for option in qc_options %}
-            <label class="option">
-                <input type="radio" name="q{{ question.id }}" value="{{ option }}" 
-                       {% if answer == option %}checked{% endif %}
-                       onchange="saveAnswer('{{ question.id }}', this.value); 
-                                 this.parentElement.parentElement.querySelectorAll('.option').forEach(o => o.classList.remove('selected')); 
-                                 this.parentElement.classList.add('selected');">
-                {{ option }}
-            </label>
-            {% endfor %}
-        </div>
-        
-        {% elif question.type == 'ma' %}
-        <div class="alert alert-info">
-            Select all that apply ({{ question.options|length }} options)
-        </div>
-        <div class="options">
-            {% for option in question.options %}
-            <label class="option">
-                <input type="checkbox" name="q{{ question.id }}" value="{{ option }}" 
-                       {% if answer|list and option in (answer|list) %}checked{% endif %}
-                       onchange="saveMultipleAnswer('{{ question.id }}'); 
-                                 this.parentElement.classList.toggle('selected', this.checked);">
-                {{ option }}
-            </label>
-            {% endfor %}
-        </div>
-        
-        {% elif question.type == 'numeric' %}
-        <div class="alert alert-info">
-            Enter your answer as a number (integer or decimal)
-        </div>
-        <input type="text" class="numeric-input" name="q{{ question.id }}" value="{{ answer or '' }}"
-               placeholder="Enter your answer"
-               onchange="saveAnswer('{{ question.id }}', this.value)">
-        
-        {% else %} {# mc type #}
-        <div class="options">
-            {% for option in question.options %}
-            <label class="option">
-                <input type="radio" name="q{{ question.id }}" value="{{ option }}" 
-                       {% if answer == option %}checked{% endif %}
-                       onchange="saveAnswer('{{ question.id }}', this.value); 
-                                 this.parentElement.parentElement.querySelectorAll('.option').forEach(o => o.classList.remove('selected')); 
-                                 this.parentElement.classList.add('selected');">
-                {{ option }}
-            </label>
-            {% endfor %}
-        </div>
-        {% endif %}
-    </div>
-    
-    <div class="submit-section">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            {% if q_idx > 0 %}
-            <a href="{{ url_for('test', q_idx=q_idx-1) }}" class="btn btn-secondary">Previous</a>
-            {% else %}
-            <span></span>
+
+            {% elif question.type == 'ma' %}
+            <div class="alert alert-info mb-4">
+                Select all that apply
+            </div>
+            <div class="options-grid">
+                {% for option in question.options %}
+                <label class="option-label {% if answer and option in answer %}selected{% endif %}">
+                    <input type="checkbox" class="option-input" name="q{{ question.id }}" value="{{ option }}" {% if
+                        answer and option in answer %}checked{% endif %}
+                        onchange="saveMultipleAnswer('{{ question.id }}'); this.parentElement.classList.toggle('selected', this.checked);">
+                    <span>{{ option }}</span>
+                </label>
+                {% endfor %}
+            </div>
+
+            {% elif question.type == 'numeric' %}
+            <div class="alert alert-info mb-4">
+                Enter your answer as a number
+            </div>
+            <input type="text" class="form-input" style="max-width: 300px; font-size: 1.25rem;"
+                name="q{{ question.id }}" value="{{ answer or '' }}" placeholder="Your answer..."
+                onchange="saveAnswer('{{ question.id }}', this.value)">
+
+            {% else %} {# mc type #}
+            <div class="options-grid">
+                {% for option in question.options %}
+                <label class="option-label {% if answer == option %}selected{% endif %}">
+                    <input type="radio" class="option-input" name="q{{ question.id }}" value="{{ option }}" {% if
+                        answer==option %}checked{% endif %}
+                        onchange="saveAnswer('{{ question.id }}', this.value); document.querySelectorAll('.option-label').forEach(o => o.classList.remove('selected')); this.parentElement.classList.add('selected');">
+                    <span>{{ option }}</span>
+                </label>
+                {% endfor %}
+            </div>
             {% endif %}
-            
-            {% if q_idx < total_questions - 1 %}
-            <a href="{{ url_for('test', q_idx=q_idx+1) }}" class="btn">Next</a>
-            {% else %}
-            <button type="button" class="btn" onclick="confirmSubmit()">Submit Test</button>
-            {% endif %}
+
+            <div class="nav-bar">
+                <div>
+                    {% if q_idx > 0 %}
+                    <a href="{{ url_for('test', q_idx=q_idx-1) }}" class="btn btn-secondary">Previous</a>
+                    {% endif %}
+                </div>
+
+                <div>
+                    {% if q_idx < total_questions - 1 %} <a href="{{ url_for('test', q_idx=q_idx+1) }}"
+                        class="btn btn-primary">Next Question</a>
+                        {% else %}
+                        <button type="button" class="btn btn-primary" onclick="confirmSubmit()">Submit Test</button>
+                        {% endif %}
+                </div>
+            </div>
         </div>
-        <p style="margin-top: 15px; color: #718096;">
-            Use Next/Previous to navigate. Submit when finished.
-        </p>
-    </div>
-</form>
+    </form>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -338,27 +271,23 @@
     sessionStorage.removeItem('gre_timer_remaining');
     {% set _ = session.pop('clear_gre_timer', None) %}
     {% endif %}
-    
-    let timeRemaining = sessionStorage.getItem('gre_timer_remaining');
-    if (timeRemaining === null) {
-        timeRemaining = {{ time_limit }} * 60;
-        sessionStorage.setItem('gre_timer_remaining', timeRemaining);
-    } else {
-        timeRemaining = parseInt(timeRemaining);
-    }
-    
+
+    // Use server-side remaining time as the source of truth
+    let timeRemaining = {{ remaining_seconds }};
+
+    // Update session storage to sync with server time (optional, but good for consistency)
+    sessionStorage.setItem('gre_timer_remaining', timeRemaining);
+
     function updateTimer() {
         const minutes = Math.floor(timeRemaining / 60);
         const seconds = timeRemaining % 60;
         const timerElement = document.getElementById('timer');
         timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-        const progress = (({{ time_limit }} * 60 - timeRemaining) / ({{ time_limit }} * 60)) * 100;
-        document.getElementById('progress').style.width = progress + '%';
-        
+
         if (timeRemaining <= 300) {
             timerElement.classList.add('warning');
         }
-        
+
         if (timeRemaining <= 0) {
             sessionStorage.removeItem('gre_timer_remaining');
             autoSubmit();
@@ -368,54 +297,57 @@
             setTimeout(updateTimer, 1000);
         }
     }
-    
+
     const answers = {};
-    
+
     function saveAnswer(questionId, answer) {
         answers[questionId] = answer;
         fetch('/submit_answer', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({question_id: parseInt(questionId), answer: answer})
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question_id: parseInt(questionId), answer: answer })
         });
     }
-    
+
     function saveMultipleAnswer(questionId) {
         const checkboxes = document.querySelectorAll(`input[name="q${questionId}"]:checked`);
         const selectedAnswers = Array.from(checkboxes).map(cb => cb.value);
         answers[questionId] = selectedAnswers;
         fetch('/submit_answer', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({question_id: parseInt(questionId), answer: selectedAnswers})
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question_id: parseInt(questionId), answer: selectedAnswers })
         });
     }
-    
+
     function confirmSubmit() {
         if (confirm('Are you sure you want to submit your test?')) {
             window.removeEventListener('beforeunload', beforeUnloadHandler);
             document.getElementById('test-form').submit();
         }
     }
-    
+
     function autoSubmit() {
         alert('Time is up! Your test will be submitted automatically.');
         window.removeEventListener('beforeunload', beforeUnloadHandler);
         document.getElementById('test-form').submit();
     }
-    
+
     function beforeUnloadHandler(e) {
         e.preventDefault();
         e.returnValue = '';
     }
-    
+
     updateTimer();
     window.addEventListener('beforeunload', beforeUnloadHandler);
-    
+
     // Only warn on submit, not on navigation
     document.querySelectorAll('a, .btn, .btn-secondary').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            if (!this.href.includes('/submit_test')) {
+        btn.addEventListener('click', function (e) {
+            const isSubmit = this.getAttribute('onclick') && this.getAttribute('onclick').includes('confirmSubmit');
+            const isNav = this.href && this.href.includes('/test/');
+
+            if (isSubmit || isNav) {
                 window.removeEventListener('beforeunload', beforeUnloadHandler);
             }
         });

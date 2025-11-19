@@ -10,9 +10,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import sqlite3
 import time
+from contextlib import contextmanager
+import re
 
 app = Flask(__name__)
-app.secret_key = secrets.token_hex(32)
+# Use environment variable for secret key or fallback to random (note: random invalidates sessions on restart)
+app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
 app.permanent_session_lifetime = timedelta(days=30)
 
 # ========================= GLOBAL CACHED DATA =========================
@@ -45,28 +48,38 @@ if not questions:
     raise RuntimeError("No questions loaded. Create processed_questions.json using preprocess.py")
 
 # ========================= DATABASE INIT =========================
-def init_db():
+# ========================= DATABASE INIT =========================
+@contextmanager
+def get_db():
     conn = sqlite3.connect('gre_practice.db')
-    c = conn.cursor()
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS user_progress (
-            user_id INTEGER PRIMARY KEY,
-            attempted_questions_bitmap TEXT,
-            test_history TEXT,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users (id)
-        )
-    ''')
-    conn.commit()
-    conn.close()
+    conn.row_factory = sqlite3.Row
+    try:
+        yield conn
+    finally:
+        conn.close()
+
+def init_db():
+    with get_db() as conn:
+        c = conn.cursor()
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        # Optimized: storing attempted_questions as JSON list instead of bitmap
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS user_progress (
+                user_id INTEGER PRIMARY KEY,
+                attempted_questions TEXT,
+                test_history TEXT,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+        conn.commit()
 
 init_db()
 
@@ -81,81 +94,83 @@ def login_required(f):
     return decorated
 
 def get_user_by_email(email):
-    conn = sqlite3.connect('gre_practice.db')
-    c = conn.cursor()
-    c.execute('SELECT id, email, password_hash FROM users WHERE email = ?', (email,))
-    user = c.fetchone()
-    conn.close()
-    return user
+    with get_db() as conn:
+        c = conn.cursor()
+        c.execute('SELECT id, email, password_hash FROM users WHERE email = ?', (email,))
+        return c.fetchone()
 
 def create_user(email, password):
-    conn = sqlite3.connect('gre_practice.db')
-    c = conn.cursor()
     password_hash = generate_password_hash(password)
     try:
-        c.execute('INSERT INTO users (email, password_hash) VALUES (?, ?)', (email, password_hash))
-        conn.commit()
-        user_id = c.lastrowid
-        # Create empty progress
-        bitmap = '0' * (max_question_id + 1)
-        c.execute('INSERT INTO user_progress (user_id, attempted_questions_bitmap, test_history) VALUES (?, ?, ?)',
-                  (user_id, bitmap, '[]'))
-        conn.commit()
-        conn.close()
-        return user_id
+        with get_db() as conn:
+            c = conn.cursor()
+            c.execute('INSERT INTO users (email, password_hash) VALUES (?, ?)', (email, password_hash))
+            user_id = c.lastrowid
+            # Initialize empty progress
+            c.execute('INSERT INTO user_progress (user_id, attempted_questions, test_history) VALUES (?, ?, ?)',
+                      (user_id, '[]', '[]'))
+            conn.commit()
+            return user_id
     except sqlite3.IntegrityError:
-        conn.close()
         return None
 
 def load_user_progress(user_id):
-    conn = sqlite3.connect('gre_practice.db')
-    c = conn.cursor()
-    c.execute('SELECT attempted_questions_bitmap, test_history FROM user_progress WHERE user_id = ?', (user_id,))
-    row = c.fetchone()
-    conn.close()
+    with get_db() as conn:
+        c = conn.cursor()
+        c.execute('SELECT attempted_questions, test_history FROM user_progress WHERE user_id = ?', (user_id,))
+        row = c.fetchone()
 
     if not row:
         return set(), []
 
-    bitmap = row[0] or ''
-    attempted_set = {i for i, bit in enumerate(bitmap, 1) if bit == '1'}
-    history = json.loads(row[1]) if row[1] else []
+    # Optimized: Load directly from JSON
+    try:
+        attempted_list = json.loads(row[0]) if row[0] else []
+        attempted_set = set(attempted_list)
+    except (json.JSONDecodeError, TypeError):
+        attempted_set = set()
+        
+    try:
+        history = json.loads(row[1]) if row[1] else []
+    except (json.JSONDecodeError, TypeError):
+        history = []
+        
     return attempted_set, history
 
 def save_user_progress(user_id, attempted_set=None, history=None):
-    conn = sqlite3.connect('gre_practice.db')
-    c = conn.cursor()
+    # We need to fetch existing if partial update, but usually we have full state in session
+    # For optimization, let's assume we pass what we want to save.
+    
+    with get_db() as conn:
+        c = conn.cursor()
+        
+        # If we only have one, we might need to fetch the other, but let's try to avoid read-before-write if possible
+        # or just do a quick read.
+        
+        current_attempted_json = None
+        current_history_json = None
+        
+        if attempted_set is None or history is None:
+            c.execute('SELECT attempted_questions, test_history FROM user_progress WHERE user_id = ?', (user_id,))
+            row = c.fetchone()
+            if row:
+                if attempted_set is None:
+                    current_attempted_json = row[0]
+                if history is None:
+                    current_history_json = row[1]
+        
+        final_attempted_json = json.dumps(list(attempted_set)) if attempted_set is not None else (current_attempted_json or '[]')
+        final_history_json = json.dumps(history) if history is not None else (current_history_json or '[]')
 
-    c.execute('SELECT attempted_questions_bitmap, test_history FROM user_progress WHERE user_id = ?', (user_id,))
-    existing = c.fetchone()
-
-    if existing:
-        old_bitmap, old_history = existing
-    else:
-        old_bitmap = '0' * (max_question_id + 1)
-        old_history = '[]'
-
-    final_set = attempted_set if attempted_set is not None else {i for i, b in enumerate(old_bitmap, 1) if b == '1'}
-    final_history = history if history is not None else (json.loads(old_history) if old_history else [])
-
-    # Convert set back to bitmap
-    bitmap_list = ['0'] * (max_question_id + 1)
-    for qid in final_set:
-        if 1 <= qid <= max_question_id:
-            bitmap_list[qid] = '1'
-    new_bitmap = ''.join(bitmap_list)
-
-    c.execute('''
-        INSERT INTO user_progress (user_id, attempted_questions_bitmap, test_history)
-        VALUES (?, ?, ?)
-        ON CONFLICT(user_id) DO UPDATE SET
-        attempted_questions_bitmap = excluded.attempted_questions_bitmap,
-        test_history = excluded.test_history,
-        updated_at = CURRENT_TIMESTAMP
-    ''', (user_id, new_bitmap, json.dumps(final_history)))
-
-    conn.commit()
-    conn.close()
+        c.execute('''
+            INSERT INTO user_progress (user_id, attempted_questions, test_history)
+            VALUES (?, ?, ?)
+            ON CONFLICT(user_id) DO UPDATE SET
+            attempted_questions = excluded.attempted_questions,
+            test_history = excluded.test_history,
+            updated_at = CURRENT_TIMESTAMP
+        ''', (user_id, final_attempted_json, final_history_json))
+        conn.commit()
 
 # ========================= ROUTES =========================
 
@@ -171,10 +186,13 @@ def register():
         password = request.form['password']
         confirm = request.form['confirm_password']
 
+        # Password complexity check
         if password != confirm:
             flash('Passwords do not match', 'error')
-        elif len(password) < 6:
-            flash('Password must be at least 6 characters', 'error')
+        elif len(password) < 8:
+            flash('Password must be at least 8 characters', 'error')
+        elif not re.search(r"[A-Z]", password) or not re.search(r"\d", password):
+            flash('Password must contain at least one uppercase letter and one number', 'error')
         elif get_user_by_email(email):
             flash('Email already registered', 'error')
         else:
@@ -242,7 +260,7 @@ def start_test():
         if len(available) == 0:
             flash('No new questions left! Resetting your progress.', 'warning')
         else:
-            flash(f'Only SDWebImage {len(available)} new questions left. Including some repeats.', 'info')
+            flash(f'Only {len(available)} new questions left. Including some repeats.', 'info')
         available = questions[:]
 
     selected = random.sample(available, min(num_questions, len(available)))
@@ -274,7 +292,7 @@ def test(q_idx):
     time_limit = test_data['time_limit']
 
     if q_idx < 0 or q_idx >= total_questions:
-        return redirect(url_for('test', q=0 if q_idx < 0 else total_questions-1))
+        return redirect(url_for('test', q_idx=0 if q_idx < 0 else total_questions-1))
 
     q_id = question_ids[q_idx]
     question = question_lookup[q_id]
@@ -285,11 +303,17 @@ def test(q_idx):
     if question['type'] == 'ma' and user_answer:
         answer = user_answer if isinstance(user_answer, list) else [user_answer]
 
+    # Calculate remaining time
+    start_time = datetime.fromisoformat(test_data['start_time'])
+    elapsed = (datetime.now() - start_time).total_seconds()
+    remaining_seconds = max(0, int(time_limit * 60 - elapsed))
+
     return render_template('test.html',
                            question=question,
                            q_idx=q_idx,
                            total_questions=total_questions,
                            time_limit=time_limit,
+                           remaining_seconds=remaining_seconds,
                            answer=answer)
 
 @app.route('/submit_answer', methods=['POST'])
@@ -326,6 +350,7 @@ def score_answer(question, user_answer):
             return set(user_answer) == set(correct_texts)
 
         elif q_type == 'qc':
+            # Define constants once
             QC_OPTIONS = [
                 "Quantity A is greater",
                 "Quantity B is greater",
@@ -421,8 +446,9 @@ def results():
 @login_required
 def reset_history():
     session['attempted_set'] = []
-    save_user_progress(session['user_id'], attempted_set=set())
-    flash('Question history reset! You will see all questions again.', 'success')
+    session['test_history'] = []
+    save_user_progress(session['user_id'], attempted_set=set(), history=[])
+    flash('All progress and history have been reset.', 'success')
     return jsonify({'success': True})
 
 @app.route('/profile')
